@@ -1,0 +1,43 @@
+{
+  "name": "tsjson",
+  "version": "0.0.1",
+  "description": "Parse JSON without fear",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts"
+  },
+  "keywords": [
+    "typescript",
+    "json",
+    "validator",
+    "parse",
+    "safe"
+  ],
+  "author": "Robbie Ostrow",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^24.0.20",
+    "@typescript-eslint/eslint-plugin": "^2.6.0",
+    "@typescript-eslint/eslint-plugin-tslint": "^2.6.0",
+    "@typescript-eslint/parser": "^2.6.0",
+    "eslint": "^6.6.0",
+    "eslint-config-prettier": "^6.5.0",
+    "eslint-config-typescript": "^3.0.0",
+    "eslint-plugin-prettier": "^3.1.1",
+    "eslint-plugin-simple-import-sort": "^4.0.0",
+    "jest": "^24.9.0",
+    "prettier": "^1.18.2",
+    "ts-jest": "^24.1.0",
+    "tslint": "^5.20.0",
+    "typescript": "^3.7.1-rc"
+  },
+  "peerDependencies": {
+    "typescript": ">= 3.7.0"
+  },
+  "dependencies": {
+    "ajv": "^6.10.2"
+  }
+}

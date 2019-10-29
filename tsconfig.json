@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "strict": true,
+    "noImplicitReturns": true, // Not covered by strict
+    "skipLibCheck": true, // Skip type checking of all declaration files (*.d.ts).
+    "noFallthroughCasesInSwitch": true, //Report errors for fallthrough cases in switch statement.
+    "preserveConstEnums": true, // Do not erase const enum declarations in generated code.
+    "noUnusedLocals": true,
+    "incremental": true,
+    "declaration": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "noErrorTruncation": true,
+    "pretty": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "es2015"
+  }
+}
