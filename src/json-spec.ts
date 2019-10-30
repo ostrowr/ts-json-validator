@@ -19,8 +19,8 @@ type PartialRequire<T, U extends keyof T> = T & Required<Pick<T, U>>;
 // UnionToIntersection magic taken from https://stackoverflow.com/a/50375286/2407869
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type UnionToIntersection<U> = (U extends any
-  ? (k: U) => void
-  : never) extends ((k: infer I) => void)
+? (k: U) => void
+: never) extends (k: infer I) => void
   ? I
   : never;
 
@@ -77,11 +77,11 @@ const integerConstructor = (options: NumberOptions = {}) => {
 interface ObjectOptions<
   Properties extends { [k: string]: JsonSchema },
   AdditionalProperties extends JsonSchema, // TODO support boolean
-  RequiredProperties extends (keyof Properties)[]
+  RequiredProperties extends readonly (keyof Properties)[]
 > extends BaseJsonSchema {
   properties?: Properties;
   additionalProperties?: AdditionalProperties;
-  required?: RequiredProperties;
+  required: RequiredProperties; // mandatory for now, since leaving it empty is making all properties required
   propertyNames?: JsonSchema;
   minProperties?: number;
   maxProperties?: number;
@@ -92,16 +92,13 @@ interface ObjectOptions<
 const objectConstructor = <
   Properties extends { [k: string]: JsonSchema },
   AdditionalProperties extends JsonSchema, // TODO support boolean
-  RequiredProperties extends (keyof Properties)[]
+  RequiredProperties extends readonly (keyof Properties)[]
 >(
-  options: ObjectOptions<
-    Properties,
-    AdditionalProperties,
-    RequiredProperties
-  > = {}
+  options: ObjectOptions<Properties, AdditionalProperties, RequiredProperties>
 ) => {
   type internalPropertyTypes = PartialRequire<
     Partial<
+      // optional by default
       { [P in keyof Properties]: Properties[P][typeof InternalTypeSymbol] }
     >,
     RequiredProperties[number]
@@ -115,7 +112,7 @@ const objectConstructor = <
 };
 
 interface ArrayOptions<
-  Items extends JsonSchema | readonly JsonSchema[],
+  Items, // extends JsonSchema | readonly JsonSchema[],
   AdditionalItems extends Items extends JsonSchema // additionalItems doesn't make sense unless Items is a list
     ? never
     : JsonSchema // TOOD support boolean
@@ -211,22 +208,13 @@ const allOfConstructor = <Schemas extends readonly JsonSchema[]>(
 };
 
 // TODO support oneOf
+export interface InterfaceWithHiddenType {
+  [InternalTypeSymbol]: unknown;
+}
 
-export type JsonSchema = ReturnType<
-  | typeof stringConstructor
-  | typeof numberConstructor
-  | typeof integerConstructor
-  // | typeof objectConstructor // TODO figure out how to do this without Typescript complaining about circular refs
-  // | typeof arrayConstructor // TODO figure out how to do this without Typescript complaining about circular refs
-  | typeof booleanConstructor
-  | typeof nullConstructor
-  // | typeof oneOfConstructor
->;
+export interface JsonSchema extends InterfaceWithHiddenType {}
 
-// TODO – enum without type?
-// TODO – combining schemas https://json-schema.org/understanding-json-schema/reference/combining.html
-
-export const Type = {
+export const Schema = {
   String: stringConstructor,
   Number: numberConstructor,
   Integer: integerConstructor,
@@ -237,29 +225,3 @@ export const Type = {
   AnyOf: anyOfConstructor,
   AllOf: allOfConstructor
 };
-
-const x = anyOfConstructor({
-  anyOf: [
-    Type.String({ enum: ["a", "b"] }),
-    Type.String({ enum: ["a", "b", "c"] })
-  ]
-});
-
-// const y = Type.Boolean({});
-
-// const x = Type.Object({
-//   properties: {
-//     hello: Type.String({}),
-//     asdf: Type.Boolean({}),
-//     subProperties: Type.Null({}),
-//     other: y
-//     // arr: Type.Array({
-//     //   items: Type.String({})
-//     // })
-//   },
-//   required: ["asdf", "subProperties", "other"]
-// });
-
-// conze;
-
-// x[internalType].subProperties;

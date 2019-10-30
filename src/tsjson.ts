@@ -28,11 +28,7 @@ export class TsjsonParser<T extends JsonSchema> {
   public validate(data: unknown): asserts data is Validated<T> {
     const valid = this.validator(data);
     if (!valid) {
-      throw new Error(
-        this.validator.errors
-          ? JSON.stringify(this.validator.errors)
-          : undefined
-      );
+      throw new Error(JSON.stringify(this.validator.errors));
     }
   }
 
