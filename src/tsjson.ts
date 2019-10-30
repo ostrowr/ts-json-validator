@@ -1,6 +1,6 @@
 import Ajv from "ajv";
 
-import { InternalTypeSymbol, JsonSchema, JsonValue } from "./json-spec";
+import { InternalTypeSymbol, JsonSchema, JsonValue } from "./json-schema";
 const hiddenField = Symbol("SpecialTypeAnnotationFieldDoNotUse");
 
 type TsjsonString<T> = string & {

@@ -1,6 +1,6 @@
 import Ajv from "ajv";
 
-import { Schema } from "./json-spec";
+import { Schema } from "./json-schema";
 import { TSJSON, TsjsonParser } from "./tsjson";
 
 const SAMPLE_STRING_1 =

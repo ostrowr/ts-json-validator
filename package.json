@@ -1,5 +1,5 @@
 {
-  "name": "tsjson",
+  "name": "ts-json-validator",
   "version": "0.0.1",
   "description": "Parse JSON without fear",
   "main": "dist/index.js",
@@ -22,7 +22,10 @@
     "json",
     "validator",
     "parse",
-    "safe"
+    "safe",
+    "tson",
+    "json-schema",
+    "schema"
   ],
   "author": "Robbie Ostrow",
   "license": "MIT",
@@ -47,5 +50,8 @@
   },
   "dependencies": {
     "ajv": "^6.10.2"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }
