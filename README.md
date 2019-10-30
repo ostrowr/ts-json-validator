@@ -9,6 +9,8 @@ Let JSON play nicely with Typescript.
 
 ## Type once, check all the time
 
+![example](./assets/example.gif)
+
 Naturally, all of the code you write is typed perfectly. But you're not in charge of all that pesky data that
 comes from other places.
 
@@ -58,12 +60,12 @@ A is a required string, b is an optional number, and c is an optional string tha
 const parser = new TsjsonParser(
   Schema.Object({
     properties: {
-      a: Schema.String({ title: "This is field A!" }),
+      a: Schema.String({ title: "This is field A" }),
       b: Schema.Number(),
       c: Schema.String({ enum: ["B1", "B2"] as const })
     },
 
-    required: ["a"] // possible fields autocomplete here!
+    required: ["a"] // possible fields autocomplete here
   })
 );
 ```
@@ -78,7 +80,7 @@ JSON.stringify(parser.schema)
   "properties": {
     "a": {
       "type": "string",
-      "title": "This is field A!"
+      "title": "This is field A"
     },
     "b": {
       "type": "number"
@@ -130,10 +132,21 @@ const parsed = parser.parse(stringToParse, true);
 // no validation; parsed might be the wrong type here.
 ```
 
+If you just want to validate an object against the schema, but have no need to parse it, run
+
+`parser.validate(obj)`
+
+This is a typescript assertion function (introduced in 3.7) that will either throw or narrow the type of `obj`
+in the rest of the scope.
+
 See the tests for more examples.
 
 ## Installation
 `npm i ts-json-validator`
 
+## How does all this work?
+The object built up has the structure of a valid JSON schema with one extra magic feature: a hidden symbol that every
+schema uses to hold its own type.
+
 ## Contributing
-Please do
+Please do!
