@@ -4,6 +4,14 @@
   "description": "Parse JSON without fear",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ostrowr/tsjson.git"
+  },
+  "homepage": "https://github.com/ostrowr/tsjson",
+  "bugs": {
+    "url": "https://github.com/ostrowr/tsjson/issues"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest",

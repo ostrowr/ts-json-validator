@@ -1,8 +1,4 @@
-const hiddenField = Symbol("SpecialTypeAnnotationFieldDoNotUse");
+import { Schema } from "./json-spec";
+import { TsjsonParser } from "./tsjson";
 
-export class TSJSON<T> {
-  // constructor() {}
-
-  public parse = (input: string): T =>
-    JSON.parse(input) as T & { [hiddenField]: "adj" };
-}
+export { Schema, TsjsonParser };
