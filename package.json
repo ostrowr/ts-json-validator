@@ -29,7 +29,7 @@
     "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-simple-import-sort": "^4.0.0",
     "jest": "^24.9.0",
-    "prettier": "^1.18.2",
+    "prettier": "github:prettier/prettier",
     "ts-jest": "^24.1.0",
     "tslint": "^5.20.0",
     "typescript": "^3.7.1-rc"

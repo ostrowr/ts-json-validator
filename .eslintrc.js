@@ -24,6 +24,7 @@ module.exports = {
     "require-atomic-updates": "error",
     "no-prototype-builtins": "error",
     "@typescript-eslint/unbound-method": "error",
+    "@typescript-eslint/no-empty-interface": "off",
     "@typescript-eslint/no-use-before-define": "error",
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-member-accessibility": [

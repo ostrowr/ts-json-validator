@@ -1,5 +1,6 @@
-import { JsonValue } from "./json-spec";
+import Ajv from "ajv";
 
+import { InternalTypeSymbol, JsonSchema, JsonValue } from "./json-spec";
 const hiddenField = Symbol("SpecialTypeAnnotationFieldDoNotUse");
 
 type TsjsonString<T> = string & {
@@ -12,3 +13,35 @@ export const TSJSON = {
   stringify: <T>(input: T): TsjsonString<T> =>
     JSON.stringify(input) as TsjsonString<T>
 };
+
+export type Validated<T extends JsonSchema> = T[typeof InternalTypeSymbol];
+
+export class TsjsonParser<T extends JsonSchema> {
+  public readonly schema: T;
+  private readonly validator: Ajv.ValidateFunction;
+  constructor(schema: T) {
+    this.schema = schema;
+    const ajv = new Ajv();
+    this.validator = ajv.compile(schema);
+  }
+
+  public validate(data: unknown): asserts data is Validated<T> {
+    const valid = this.validator(data);
+    if (!valid) {
+      throw new Error(
+        this.validator.errors
+          ? JSON.stringify(this.validator.errors)
+          : undefined
+      );
+    }
+  }
+
+  public parse = (text: string, skipValidation = false): Validated<T> => {
+    const data = JSON.parse(text);
+    if (skipValidation) {
+      return data;
+    }
+    this.validate(data);
+    return data;
+  };
+}
