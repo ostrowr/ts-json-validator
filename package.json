@@ -6,11 +6,11 @@
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ostrowr/tsjson.git"
+    "url": "https://github.com/ostrowr/ts-json-validator.git"
   },
-  "homepage": "https://github.com/ostrowr/tsjson",
+  "homepage": "https://github.com/ostrowr/ts-json-validator",
   "bugs": {
-    "url": "https://github.com/ostrowr/tsjson/issues"
+    "url": "https://github.com/ostrowr/ts-json-validator/issues"
   },
   "scripts": {
     "build": "tsc",
