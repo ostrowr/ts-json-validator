@@ -1,6 +1,6 @@
 {
   "name": "ts-json-validator",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Parse JSON without fear",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
