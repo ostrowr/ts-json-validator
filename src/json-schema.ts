@@ -1,4 +1,4 @@
-// A loose Typescript interpretation of the JSON spec from
+// A Typescript interpretation of the JSON spec from
 // http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf
 
 // ENFORCED indicates that the field is enforced by the type system, and it should be
@@ -20,8 +20,8 @@
 // express a type that means "a string that matches this regex".
 
 // NO ENFORCEMENT NEEDED means that this field does not add any constraints to a JSON schema so is essentially a comment.
-// to compile a program that passes typechecking but still fails schema validation.
 
+// Symbol needed to compile a program that passes typechecking but still fails schema validation.
 export const InternalTypeSymbol = Symbol("InternalType");
 
 export type JsonValue =

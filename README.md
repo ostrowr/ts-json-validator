@@ -144,6 +144,77 @@ such that `Validated<typeof schema>` is the type defining all types that are ass
 
 See the tests for more examples.
 
+## Goal
+Ultimately, I hope that this can generate Typescript type/JSON schema pairs `<T, s>` such that
+    1. Any type that `s` can validate is assignable to `T`
+    2. As few types as possible that are assignable to `T` cannot be validated by `s`.
+
+- Step (1) is easily possible by assigning type `T` = any, but we want to narrow the type as far as possible to make this
+library actually useful.
+- Step (2) is generally impossible when validating against keywords that don't have a related type constraint (e.g. it's
+not really possible to have a type expressing all numbers between 0 and 1) but we can do a lot here for many keywords.
+
+
+ENFORCED (💪) indicates that the field is enforced by the type system, and it should be
+impossible for any type assignable to `T` to fail JSON validation because of constraints
+that this field introduces.
+
+For example, the `required` field on objects is ENFORCED because a type assignable to `T` is guaranteed to contain
+all fields marked `required`.
+
+PARTIALLY ENFORCED (🔓) indicates that the field is partially enforced by the type system, but it may be possible
+to assign a type to `T` that fails validation against `s`.
+
+For example, arrays with the `additionalItems` parameter are PARTIALLY ENFORCED becuase (currently) every element
+in the validated type can be assigned to the additionalItems type, when only items after `items.length` should
+be validated against this schema.
+
+NOT ENFORCED (⚠️) indicates that the field is not enforced by the type system. This is either because it's impossible
+to do so efficiently given Typescript, or because I haven't figured out how yet. If the latter, hopefully I've
+included a comment.
+
+For example, the `pattern` constraint in a string type is NOT ENFORCED because there's no reasonable way to
+express a type that means "a string that matches this regex".
+
+NO ENFORCEMENT NEEDED (🤷) (means that this field does not add any constraints to a JSON schema so is essentially a comment.
+
+NOT SUPPORTED (❌) means you can't currently define a TsjsonSchema that includes this validation keyword :(
+
+| Validation keyword | Enforcement | Notes |
+|------|----|-----|
+| type | 💪 | |
+| items | 💪 | |
+| enum | 💪 | Currently only supported for string types |
+| required | 💪 | |
+| anyOf | 💪 | |
+| allOf | 💪 | |
+| properties | 💪 | |
+| additionalItems | 🔓 | Mostly enforced |
+| additionalProperties | 🔓 | Mostly enforced |
+| propertyNames (added in draft-06) | ⚠️ | Possible to partially enforce but not yet implemented |
+| maximum / minimum and exclusiveMaximum / exclusiveMinimum | ⚠️| Probably impossible to enforce using type system |
+| multipleOf | ⚠️ | Probably impossible to enforce using type system |
+| maxLength/minLength | ⚠️ | Probably impossible to enforce using type system |
+| pattern | ⚠️ | Probably impossible to enforce using type system |
+| format | ⚠️ | Probably impossible to enforce using type system |
+| formatMaximum / formatMinimum and formatExclusiveMaximum / formatExclusiveMinimum (proposed) | ⚠️ | Probably impossible to enforce using type system |
+| maxItems/minItems | ⚠️ | Probably impossible to enforce using type system |
+| uniqueItems | ⚠️ | Probably impossible to enforce using type system |
+| maxProperties/minProperties | ⚠️ | Probably impossible to enforce using type system |
+| patternProperties | ⚠️ | Probably impossible to enforce using type system |
+| contains (added in draft-06) | ❌ | Not yet implemented |
+| dependencies | ❌ | Not yet implemented |
+| patternRequired (proposed) | ❌ | Not yet implemented; probably impossible to enforce |
+| const (added in draft-06) | ❌ | Not yet implemented |
+| Compound keywords | ❌ | Not yet implemented |
+| not | ❌ | Not yet implemented |
+| oneOf | ❌ | Not yet implemented |
+| if/then/else (NEW in draft-07) | ❌ | Not yet implemented |
+
+(List of keywords taken from `https://github.com/epoberezkin/ajv/blob/master/KEYWORDS.md`)
+
+See [src/tsjson-parser.ts](./src/tsjson-parser.ts) for more details.
+
 ## Installation
 `npm i ts-json-validator`
 
