@@ -35,7 +35,7 @@ the types assignable to the schema. `ts-json-validator` implements part, but not
 ## Usage
 First, import the important stuff:
 
-`import { Schema, TsjsonParser } from "ts-json-validator"`
+`import { Schema, TsjsonParser, Validate } from "ts-json-validator"`
 
 Then define a schema. Right now, `ts-json-validator` supports schemas typed as
 
@@ -138,6 +138,9 @@ If you just want to validate an object against the schema, but have no need to p
 
 This is a typescript assertion function (introduced in 3.7) that will either throw or narrow the type of `obj`
 in the rest of the scope.
+
+If you have a schema and want to use its type in helper functions, there is a helper type `Validated<T>`
+such that `Validated<typeof schema>` is the type defining all types that are assignable to this `schema`.
 
 See the tests for more examples.
 

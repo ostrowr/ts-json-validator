@@ -1,7 +1,7 @@
 import Ajv from "ajv";
 
 import { Schema } from "./json-schema";
-import { TSJSON, TsjsonParser } from "./tsjson";
+import { TSJSON, TsjsonParser } from "./tsjson-parser";
 
 const SAMPLE_STRING_1 =
   "Baseball is ninety percent mental and the other half is physical.";

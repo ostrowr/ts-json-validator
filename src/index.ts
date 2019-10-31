@@ -1,4 +1,4 @@
 import { Schema } from "./json-schema";
-import { TsjsonParser } from "./tsjson";
+import { TsjsonParser, Validated } from "./tsjson-parser";
 
-export { Schema, TsjsonParser };
+export { Schema, TsjsonParser, Validated };
