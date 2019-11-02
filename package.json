@@ -1,6 +1,6 @@
 {
   "name": "ts-json-validator",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "Parse JSON without fear",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -42,7 +42,6 @@
     "jest": "^24.9.0",
     "prettier": "github:prettier/prettier",
     "ts-jest": "^24.1.0",
-    "tsd": "^0.10.0",
     "tslint": "^5.20.0",
     "typescript": "^3.7.1-rc"
   },

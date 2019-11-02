@@ -30,7 +30,7 @@ export const InternalTypeSymbol = Symbol("InternalType");
 export type JsonValue =
   | { [property: string]: JsonValue }
   | boolean
-  | JsonValue[]
+  | readonly JsonValue[]
   | null
   | number
   | string;

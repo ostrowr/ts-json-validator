@@ -1,11 +1,16 @@
 import Ajv from "ajv";
-import { expectType } from "tsd";
 
 import { createSchema as S } from "./json-schema";
 import { TSJSON, TsjsonParser } from "./tsjson-parser";
 
 const SAMPLE_STRING_1 =
   "Baseball is ninety percent mental and the other half is physical.";
+
+// Sanity-check to make sure the type compatible with what we expect.
+// should eventually use something stricter like `tsd` but I'd probably have to roll my own to
+// get it to work for this use case.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const expectType = <T>(_: T) => {};
 
 const ajv = new Ajv();
 
@@ -130,7 +135,7 @@ describe("Sanity-checks:", () => {
           S({
             type: "object",
             properties: {
-              a: S({ type: "string" }),
+              a: S({ type: "string", enum: ["a", "b", "c"] as const }),
               b: S({ type: "number" }),
               d: S({ type: "number" })
             },
@@ -148,11 +153,11 @@ describe("Sanity-checks:", () => {
         ]
       })
     );
-    const parsed = parser.parse(JSON.stringify({ a: "hello" }));
-    expectType<{ a: string | undefined; b?: number; c?: string; d?: never }>(
+    const parsed = parser.parse(JSON.stringify({ a: "a" }));
+    expectType<{ a: "a" | "b" | "c"; b?: number; c?: string; d?: never }>(
       parsed
     );
-    expect(parsed).toStrictEqual({ a: "hello" });
+    expect(parsed).toStrictEqual({ a: "a" });
     expect(() => parser.parse(JSON.stringify({}))).toThrow();
     expect(ajv.validateSchema(parser.schema)).toBe(true);
   });
@@ -162,6 +167,7 @@ describe("Sanity-checks:", () => {
     const parser = new TsjsonParser(S({ type: "null" }));
     parser.validate = jest.fn();
     const parsed = parser.parse(JSON.stringify(null));
+    expectType<null>(parsed);
     expect(parsed).toBe(null);
     expect(parser.validate).toBeCalledTimes(1);
     parser.parse(JSON.stringify(null), true);
@@ -172,7 +178,8 @@ describe("Sanity-checks:", () => {
 
   test("SkipValidation is dangerous", () => {
     const parser = new TsjsonParser(S({ type: "null" }));
-    const parsed = parser.parse(JSON.stringify(SAMPLE_STRING_1), true); // typeof parsed === null, which is wrong!
+    const parsed = parser.parse(JSON.stringify(SAMPLE_STRING_1), true);
+    expectType<null>(parsed); // typeof parsed === null, which is wrong!
     expect(parsed).toBe(SAMPLE_STRING_1);
     expect(() => parser.validate(parsed)).toThrow();
     expect(ajv.validateSchema(parser.schema)).toBe(true);
@@ -180,5 +187,190 @@ describe("Sanity-checks:", () => {
 
   test("Invalid schema fails validation", () => {
     expect(ajv.validateSchema({ type: "invalid" })).toBe(false);
+  });
+});
+
+describe("More involved tests with arrays", () => {
+  test("Array of objects", () => {
+    const parser = new TsjsonParser(
+      S({
+        type: "array",
+        items: S({ type: "object", properties: { a: S({ type: "string" }) } })
+      })
+    );
+
+    const toParse = [{ a: "1" }, { a: "2" }, {}] as const;
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<{ a?: string }[]>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+  });
+
+  test("Array of required objects", () => {
+    const parser = new TsjsonParser(
+      S({
+        type: "array",
+        items: S({
+          type: "object",
+          properties: { a: S({ type: "string" }) },
+          required: ["a"]
+        })
+      })
+    );
+
+    const toParseInvalid = [{ a: "1" }, { a: "2" }, {}] as const;
+    expect(() => parser.parse(JSON.stringify(toParseInvalid))).toThrow();
+    const toParseValid = [{ a: "1" }, { a: "2" }] as const;
+    const parsed = parser.parse(JSON.stringify(toParseValid));
+    expectType<{ a: string }[]>(parsed);
+    expect(parsed).toStrictEqual(toParseValid);
+  });
+
+  test("Arrays of arrays", () => {
+    const parser = new TsjsonParser(
+      S({
+        type: "array",
+        items: S({
+          type: "array",
+          items: S({ type: "array", items: S({ type: "number" }) })
+        })
+      })
+    );
+
+    const toParse = [[[0]], [], [[1]], [[1], [2], []]] as const;
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<Array<Array<Array<number>>>>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+
+    const toFail = [[[0]], [], [[1]], [[1], [2], 0]] as const;
+    expect(() => parser.parse(JSON.stringify(toFail))).toThrow();
+  });
+
+  test("Array with additionalItems", () => {
+    const parser = new TsjsonParser(
+      S({
+        type: "array",
+        items: [S({ type: "string" })],
+        additionalItems: S({ type: "number" })
+      })
+    );
+
+    const toParse = ["1", 2, 3, 4] as const;
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<Array<string | number>>(parsed); // this type should really be [string, ...number]
+    expect(parsed).toStrictEqual(toParse);
+
+    const toFail = [1, "2"] as const; // this will pass typechecking even though it will fail validation!
+    expect(() => parser.parse(JSON.stringify(toFail))).toThrow();
+  });
+});
+
+describe("More involved tests with objects", () => {
+  test("Object with various fields", () => {
+    const parser = new TsjsonParser(
+      S({
+        type: "object",
+        properties: {
+          a: S({ type: "array" }),
+          b: S({ type: "array" }),
+          c: S({ type: "object" }),
+          d: S({ type: "object" }),
+          e: S({ type: "string" }),
+          f: S({ type: "number" })
+        },
+        additionalProperties: S({ type: "number" }),
+        required: ["a", "c", "e"] as const
+      })
+    );
+
+    const toParse = {
+      a: [],
+      b: [1, "a", 4],
+      c: { hello: 123 },
+      e: "thisisastring"
+    } as const;
+
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<
+      | { [k: string]: number }
+      | {
+          a: unknown[];
+          b?: unknown[];
+          c: { [k: string]: unknown };
+          d?: { [k: string]: unknown };
+          e: string;
+          f?: number;
+        }
+    >(parsed);
+    expect(parsed).toStrictEqual(toParse);
+
+    expectType<number>(parsed.anotherProp);
+
+    const toFail = {};
+    expect(() => parser.parse(JSON.stringify(toFail))).toThrow();
+  });
+});
+
+describe("Odd combinations of things", () => {
+  test("Enum without type", () => {
+    const parser = new TsjsonParser(S({ enum: [1, "2", { x: "y" }] as const }));
+    const toParse = { x: "y" };
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<1 | "2" | { x: "y" }>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+  });
+
+  test("Const object", () => {
+    const parser = new TsjsonParser(S({ const: { a: 3 } as const }));
+    const toParse = { a: 3 };
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<{ a: 3 }>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+    const toFail = { a: 4 };
+    expect(() => parser.parse(JSON.stringify(toFail))).toThrow();
+  });
+
+  test("Const array", () => {
+    const parser = new TsjsonParser(S({ const: ["a", 1] as const }));
+    const toParse = ["a", 1];
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<readonly ["a", 1]>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+    const toFail = ["a"];
+    expect(() => parser.parse(JSON.stringify(toFail))).toThrow();
+  });
+
+  test("AllOf and anyOf", () => {
+    const parser = new TsjsonParser(
+      S({
+        anyOf: [
+          S({ type: "string", enum: ["a", "b", "c"] as const }),
+          S({ type: "string", enum: ["a", "b", "d"] as const })
+        ],
+
+        // allOf: [S({ type: "string", enum: ["a", "d"] as const })] // is currently deriving a never type, which is wrong
+        allOf: [S({ type: "string" })]
+      })
+    );
+    const parsed = parser.parse(JSON.stringify("a"));
+
+    expectType<"a" | "b" | "c" | "d">(parsed);
+    expect(parsed).toBe("a");
+  });
+
+  test("Subschemas without type inherit type", () => {
+    const parser = new TsjsonParser(
+      S({
+        type: "string",
+        anyOf: [
+          S({ enum: ["a"] as const }),
+          S({ description: "unconstrained" })
+        ]
+      })
+    );
+
+    const parsed = parser.parse(JSON.stringify("z"));
+    expectType<string>(parsed);
+
+    expect(parsed).toBe("z");
   });
 });
