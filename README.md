@@ -48,9 +48,9 @@ const parser = new TsjsonParser(
   S({
     type: "object",
     properties: {
-      a: Schema.String({ title: "This is field A" }),
-      b: Schema.Number(),
-      c: Schema.String({ enum: ["B1", "B2"] as const })
+      a: S({ type: "string", title: "This is field A" }),
+      b: S( {type: "number"} ),
+      c: S({ type: "string", enum: ["B1", "B2"] as const })
     },
     required: ["a"] // possible fields autocomplete here
   })
