@@ -1,7 +1,7 @@
 import Ajv from "ajv";
 import { expectType } from "tsd";
 
-import { Schema } from "./json-schema";
+import { createSchema as S } from "./json-schema";
 import { TSJSON, TsjsonParser } from "./tsjson-parser";
 
 const SAMPLE_STRING_1 =
@@ -20,7 +20,7 @@ describe("Sanity-checks:", () => {
   });
 
   test("A string is a valid schema", () => {
-    const parser = new TsjsonParser(Schema.String());
+    const parser = new TsjsonParser(S({ type: "string" }));
     const parsed = parser.parse(JSON.stringify(SAMPLE_STRING_1));
     expectType<string>(parsed);
     expect(parsed).toBe(SAMPLE_STRING_1);
@@ -29,7 +29,9 @@ describe("Sanity-checks:", () => {
   });
 
   test("Enums convert to union types", () => {
-    const parser = new TsjsonParser(Schema.String({ enum: ["a", "b", "c"] }));
+    const parser = new TsjsonParser(
+      S({ type: "string", enum: ["a", "b", "c"] as const })
+    );
     expect(() => parser.parse(JSON.stringify(SAMPLE_STRING_1))).toThrow();
     const parsed = parser.parse(JSON.stringify("a"));
     expectType<"a" | "b" | "c">(parsed);
@@ -42,7 +44,7 @@ describe("Sanity-checks:", () => {
   });
 
   test("A number is a valid schema", () => {
-    const parser = new TsjsonParser(Schema.Number());
+    const parser = new TsjsonParser(S({ type: "number" }));
     const parsed = parser.parse(JSON.stringify(42));
     expectType<number>(parsed);
     expect(parsed).toBe(42);
@@ -51,7 +53,7 @@ describe("Sanity-checks:", () => {
   });
 
   test("An integer is a valid schema", () => {
-    const parser = new TsjsonParser(Schema.Integer());
+    const parser = new TsjsonParser(S({ type: "integer" }));
     const parsed = parser.parse(JSON.stringify(42));
     expectType<number>(parsed);
     expect(parsed).toBe(42);
@@ -60,7 +62,7 @@ describe("Sanity-checks:", () => {
   });
 
   test("Null is a valid schema", () => {
-    const parser = new TsjsonParser(Schema.Null());
+    const parser = new TsjsonParser(S({ type: "null" }));
     const parsed = parser.parse(JSON.stringify(null));
     expectType<null>(parsed);
     expect(parsed).toBe(null);
@@ -69,7 +71,7 @@ describe("Sanity-checks:", () => {
   });
 
   test("A boolean is a valid schema", () => {
-    const parser = new TsjsonParser(Schema.Boolean());
+    const parser = new TsjsonParser(S({ type: "boolean" }));
     const parsed = parser.parse(JSON.stringify(true));
     expect(parsed).toBe(true);
     expectType<boolean>(parsed);
@@ -78,7 +80,7 @@ describe("Sanity-checks:", () => {
   });
 
   test("Validation that doesn't appear in types is still respected", () => {
-    const parser = new TsjsonParser(Schema.Number({ minimum: 3 }));
+    const parser = new TsjsonParser(S({ type: "number", minimum: 3 }));
     expect(() => parser.parse(JSON.stringify(2))).toThrow();
     const parsed = parser.parse(JSON.stringify(3));
     expectType<number>(parsed);
@@ -87,7 +89,7 @@ describe("Sanity-checks:", () => {
   });
 
   test("An empty array is a valid schema", () => {
-    const parser = new TsjsonParser(Schema.Array());
+    const parser = new TsjsonParser(S({ type: "array" }));
     const parsed = parser.parse(JSON.stringify([]));
     expect(parsed).toStrictEqual([]);
     expectType<unknown[]>(parsed);
@@ -98,7 +100,7 @@ describe("Sanity-checks:", () => {
   });
 
   test("An object is a valid schema", () => {
-    const parser = new TsjsonParser(Schema.Object({ required: [] }));
+    const parser = new TsjsonParser(S({ type: "object", required: [] }));
     const parsed = parser.parse(JSON.stringify({}));
     expect(parsed).toStrictEqual({});
     expectType<{ [x: string]: unknown }>(parsed);
@@ -108,8 +110,8 @@ describe("Sanity-checks:", () => {
 
   test("AnyOf works with simple schemas", () => {
     const parser = new TsjsonParser(
-      Schema.AnyOf({
-        anyOf: [Schema.String(), Schema.Number()]
+      S({
+        anyOf: [S({ type: "string" }), S({ type: "number" })]
       })
     );
     let parsed = parser.parse(JSON.stringify(SAMPLE_STRING_1));
@@ -123,21 +125,23 @@ describe("Sanity-checks:", () => {
 
   test("AllOf works with simple schemas", () => {
     const parser = new TsjsonParser(
-      Schema.AllOf({
+      S({
         allOf: [
-          Schema.Object({
+          S({
+            type: "object",
             properties: {
-              a: Schema.String(),
-              b: Schema.Number(),
-              d: Schema.Number()
+              a: S({ type: "string" }),
+              b: S({ type: "number" }),
+              d: S({ type: "number" })
             },
             required: []
           }),
-          Schema.Object({
+          S({
+            type: "object",
             properties: {
-              a: Schema.String(),
-              c: Schema.String(),
-              d: Schema.String()
+              a: S({ type: "string" }),
+              c: S({ type: "string" }),
+              d: S({ type: "string" })
             },
             required: ["a"]
           })
@@ -155,7 +159,7 @@ describe("Sanity-checks:", () => {
 
   test("Ensure validate is not called if skipValidation is true", () => {
     /* eslint-disable @typescript-eslint/unbound-method */
-    const parser = new TsjsonParser(Schema.Null());
+    const parser = new TsjsonParser(S({ type: "null" }));
     parser.validate = jest.fn();
     const parsed = parser.parse(JSON.stringify(null));
     expect(parsed).toBe(null);
@@ -167,7 +171,7 @@ describe("Sanity-checks:", () => {
   });
 
   test("SkipValidation is dangerous", () => {
-    const parser = new TsjsonParser(Schema.Null());
+    const parser = new TsjsonParser(S({ type: "null" }));
     const parsed = parser.parse(JSON.stringify(SAMPLE_STRING_1), true); // typeof parsed === null, which is wrong!
     expect(parsed).toBe(SAMPLE_STRING_1);
     expect(() => parser.validate(parsed)).toThrow();
