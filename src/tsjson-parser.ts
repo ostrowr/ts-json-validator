@@ -33,7 +33,7 @@ export class TsjsonParser<T extends JsonSchema> {
   }
 
   public parse = (text: string, skipValidation = false): Validated<T> => {
-    const data = JSON.parse(text);
+    const data: unknown = JSON.parse(text);
     if (skipValidation) {
       return data;
     }

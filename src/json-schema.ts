@@ -1,3 +1,5 @@
+import { SchemaValidateFunction } from "ajv";
+
 // A Typescript interpretation of the JSON spec from
 // http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf
 
@@ -287,4 +289,139 @@ export const Schema = {
   Null: nullConstructor,
   AnyOf: anyOfConstructor,
   AllOf: allOfConstructor
+};
+
+type SimpleType =
+  | "array"
+  | "boolean"
+  | "integer"
+  | "null"
+  | "number"
+  | "object"
+  | "string";
+
+type ConstConstraint<
+  Const extends JsonValue | undefined
+> = Const extends JsonValue ? Const : unknown;
+
+// type NotConstraint<Not extends JsonSchema | undefined> = Not extends JsonSchema ?
+
+// Make it impossible to define an invalid schema, and also impossible to define a schema that just doesn't make sense
+// (e.g. no reason to have a minimum constraint on a string.)
+interface Schema<
+  Type extends SimpleType | readonly SimpleType[] | undefined = undefined, // type can be either a single type or a list of types (TODO allow it to be a list of types)
+  Properties extends { [k: string]: JsonSchema } | undefined = undefined,
+  Items extends (JsonSchema | readonly JsonSchema[]) | undefined = undefined,
+  AdditionalItems extends JsonSchema | undefined = undefined,
+  AdditionalProperties extends JsonSchema | undefined = undefined,
+  Required extends readonly (keyof Properties)[] | undefined = undefined,
+  Const extends JsonValue | undefined = undefined, // TODO constrain to type
+  Enum extends readonly JsonValue[] | undefined = undefined, // TODO constrain to type
+  AllOf extends readonly JsonSchema[] | undefined = undefined,
+  AnyOf extends readonly JsonSchema[] | undefined = undefined,
+  OneOf extends readonly JsonSchema[] | undefined = undefined,
+  Not extends JsonSchema | undefined = undefined,
+  CalculatedType = unknown // where the magic happens
+> {
+  $id?: string; // adds no constraints, can be in any schema
+  $schema?: "http://json-schema.org/draft-07/schema#"; // if you want to specify the schema, it's got to be draft-07 right now!
+  // $ref?: string; // not yet supported
+  $comment?: string; // adds no constraints, can be in any schema
+  title?: string; // adds no constraints, can be in any schema
+  description?: string; // adds no constraints, can be in any schema
+  default?: CalculatedType;
+  readOnly?: boolean;
+  examples?: JsonValue[];
+  multipleOf?: Type extends "number" | "integer" ? number : never; // only makes sense for number/integer types
+  maximum?: Type extends "number" | "integer" ? number : never; // only makes sense for number/integer types
+  exclusiveMaximum?: Type extends "number" | "integer" ? number : never; // only makes sense for number/integer types
+  minimum?: Type extends "number" | "integer" ? number : never; // only makes sense for number/integer types
+  exclusiveMinimum?: Type extends "number" | "integer" ? number : never; // only makes sense for number/integer types
+  minLength?: Type extends "string" ? number : never; // only makes sense for string types
+  maxLength?: Type extends "string" ? number : never; // only makes sense for string types
+  pattern?: Type extends "string" ? string : never; // only makes sense for string types
+  additionalItems?: Type extends "array" // only makes sense for array types
+    ? Items extends JsonSchema // where the items field is not a single schema
+      ? never
+      : AdditionalItems
+    : never;
+  items?: Type extends "array" ? Items : never; // only makes sense for array types
+  maxItems?: Type extends "array" ? number : never; // only makes sense for array types
+  minItems?: Type extends "array" ? number : never; // only makes sense for array types
+  uniqueItems?: Type extends "array" ? boolean : never; // only makes sense for array types
+  contains?: Type extends "array" ? Schema : never; // only makes sense for array types
+  maxProperties?: Type extends "object" ? number : never; // only makes sense for object types
+  minProperties?: Type extends "object" ? number : never; // only makes sense for object types
+  required?: Type extends "object" ? Required : never; // only makes sense for object types
+  additionalProperties?: Type extends "object" ? AdditionalProperties : never; // only makes sense for object types
+  // definitions?: TODO
+  properties?: Type extends "object" ? Properties : never; // only makes sense for object types
+  patternProperties?: Type extends "object" ? { [k: string]: Schema } : never; // only makes sense for object types
+  // dependencies?: TODO
+  propertyNames?: Type extends "object" ? Schema : never; // only makes sense for object types
+  const?: Const;
+  enum?: Enum;
+  type?: Type;
+  format?: Type extends "string" ? string : never; // only makes sense for string types
+  contentMediaType?: Type extends "string" ? string : never;
+  contentEncoding?: Type extends "string" ? string : never;
+  // if?: Schema; // not yet supported
+  // then?: Schema; // not yet supported
+  // else?: Schema; // not yet supported
+  allOf?: AllOf;
+  anyOf?: AnyOf;
+  oneOf?: OneOf;
+  not?: Not;
+  [InternalTypeSymbol]?: CalculatedType;
+}
+
+const createSchema = <
+  Type extends SimpleType | undefined = undefined, // type can be either a single type or a list of types // TODO support type as SimpleType[]
+  Properties extends
+    | (Type extends "object" ? { [k: string]: JsonSchema } : never) // properties only makes sense if type is object
+    | undefined = undefined,
+  Items extends  // items only makes sense if type is "array"
+    | (Type extends "array" ? JsonSchema | readonly JsonSchema[] : never)
+    | undefined = undefined,
+  AdditionalItems extends
+    | (Type extends "array" // additionalItems only makes sense if type is array
+        ? Items extends JsonSchema // and if Items is a list of schemas, not a single schema
+          ? never
+          : JsonSchema
+        : never)
+    | undefined = undefined,
+  AdditionalProperties extends
+    | (Type extends "object" ? JsonSchema : never) // additionalProperties only makes sense if type is object
+    | undefined = undefined,
+  Required extends
+    | (Type extends "object" ? readonly (keyof Properties)[] : never) // required only makes sense if type is object
+    | undefined = undefined,
+  Const extends JsonValue | undefined = undefined, // TODO constrain to type
+  Enum extends readonly JsonValue[] | undefined = undefined, // TODO constrain to type
+  AllOf extends readonly JsonSchema[] | undefined = undefined,
+  AnyOf extends readonly JsonSchema[] | undefined = undefined,
+  OneOf extends readonly JsonSchema[] | undefined = undefined,
+  Not extends JsonSchema | undefined = undefined
+  // below here we just constrain to say "You shouldn't create a schema with a "
+>(
+  schema: Schema<
+    Type,
+    Properties,
+    Items,
+    AdditionalItems,
+    AdditionalProperties,
+    Required,
+    Const,
+    Enum,
+    AllOf,
+    AnyOf,
+    OneOf,
+    Not
+  >
+) => {
+  type internalType = string;
+  return {
+    ...schema,
+    [InternalTypeSymbol]: {} as internalType
+  };
 };
