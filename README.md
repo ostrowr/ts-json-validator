@@ -1,7 +1,7 @@
 ts-json-validator
 ------
 
-[![codecov](https://codecov.io/gh/ostrowr/ts-json-validator/branch/master/graph/badge.svg)](https://codecov.io/gh/ostrowr/ts-json-validator) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier) ![Build status](https://github.com/ostrowr/ts-json-validator/workflows/Build/badge.svg) ![npm version](https://badge.fury.io/js/ts-json-validator.svg)
+[![codecov](https://codecov.io/gh/ostrowr/ts-json-validator/branch/master/graph/badge.svg)](https://codecov.io/gh/ostrowr/ts-json-validator) [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier) [![Build status](https://github.com/ostrowr/ts-json-validator/workflows/Build/badge.svg)](https://github.com/ostrowr/ts-json-validator/actions) [![npm version](https://badge.fury.io/js/ts-json-validator.svg)](https://www.npmjs.com/package/ts-json-validator)
 
 Let JSON play nicely with Typescript.
 
@@ -30,27 +30,14 @@ type, that's OK too.
 
 `ts-json-validator` exposes a pretty small API. It allows you to create and validate against a schema compliant with
 [draft-07 of JSON Schema](http://json-schema.org/draft-07/schema#) that also exposes a strict Typescript type expressing
-the types assignable to the schema. `ts-json-validator` implements part, but not (yet) all, of [draft-07 of JSON Schema](http://json-schema.org/draft-07/schema#).
+the types assignable to the schema. `ts-json-validator` implements most, but not (quite) all, of draft-07.
 
 ## Usage
 First, import the important stuff:
 
-`import { Schema, TsjsonParser, Validate } from "ts-json-validator"`
+`import { createSchema as S, TsjsonParser, Validator } from "ts-json-validator"`
 
-Then define a schema. Right now, `ts-json-validator` supports schemas typed as
-
-- `string`
-- `number`
-- `integer`
-- `boolean`
-- `object`
-- `array`
-- `null`
-
-and any combination thereof.
-
-It also supports schemas that are combinations of other schemas, using the
-`allOf` and `anyOf` directives. It doesn't yet support `oneOf`, since typing an XOR is a task for another day.
+Then define a schema. `ts-json-validator` currently supports every keyword except `$ref`, `definitions`, and `dependencies`.
 
 Let's say we want to define a schema that accepts objects with fields "a", "b", and "c".
 A is a required string, b is an optional number, and c is an optional string that can only take on the values "B1" or "B2".
@@ -58,13 +45,13 @@ A is a required string, b is an optional number, and c is an optional string tha
 ```
 // Make a parser that accepts objects with fields "a", "b", and "c"
 const parser = new TsjsonParser(
-  Schema.Object({
+  S({
+    type: "object",
     properties: {
       a: Schema.String({ title: "This is field A" }),
       b: Schema.Number(),
       c: Schema.String({ enum: ["B1", "B2"] as const })
     },
-
     required: ["a"] // possible fields autocomplete here
   })
 );
@@ -180,40 +167,56 @@ NO ENFORCEMENT NEEDED (🤷) (means that this field does not add any constraints
 
 NOT SUPPORTED (❌) means you can't currently define a TsjsonSchema that includes this validation keyword :(
 
-| Validation keyword | Enforcement | Notes |
+
+| Keyword | Enforcement | Notes |
 |------|----|-----|
-| type | 💪 | |
-| items | 💪 | |
-| enum | 💪 | Currently only supported for string types |
+| additionalProperties| 💪 | |
+| allOf| 💪 | |
+| anyOf| 💪 | |
+| const | 💪 | |
+| default | 💪 | Can only be assigned types that the rest of the schema validates |
+| else| 💪 | Only matters if `if` is supplied |
+| enum| 💪 | |
+| properties| 💪 | |
 | required | 💪 | |
-| anyOf | 💪 | |
-| allOf | 💪 | |
-| properties | 💪 | |
-| additionalItems | 🔓 | Mostly enforced |
-| additionalProperties | 🔓 | Mostly enforced |
-| propertyNames (added in draft-06) | ⚠️ | Possible to partially enforce but not yet implemented |
-| maximum / minimum and exclusiveMaximum / exclusiveMinimum | ⚠️| Probably impossible to enforce using type system |
-| multipleOf | ⚠️ | Probably impossible to enforce using type system |
-| maxLength/minLength | ⚠️ | Probably impossible to enforce using type system |
-| pattern | ⚠️ | Probably impossible to enforce using type system |
-| format | ⚠️ | Probably impossible to enforce using type system |
-| formatMaximum / formatMinimum and formatExclusiveMaximum / formatExclusiveMinimum (proposed) | ⚠️ | Probably impossible to enforce using type system |
-| maxItems/minItems | ⚠️ | Probably impossible to enforce using type system |
-| uniqueItems | ⚠️ | Probably impossible to enforce using type system |
-| maxProperties/minProperties | ⚠️ | Probably impossible to enforce using type system |
-| patternProperties | ⚠️ | Probably impossible to enforce using type system |
-| contains (added in draft-06) | ❌ | Not yet implemented |
-| dependencies | ❌ | Not yet implemented |
-| patternRequired (proposed) | ❌ | Not yet implemented; probably impossible to enforce |
-| const (added in draft-06) | ❌ | Not yet implemented |
-| Compound keywords | ❌ | Not yet implemented |
-| not | ❌ | Not yet implemented |
-| oneOf | ❌ | Not yet implemented |
-| if/then/else (NEW in draft-07) | ❌ | Not yet implemented |
+| then| 💪 | Only matters if `if` is supplied |
+| type| 💪 | Currently only supports single types (not lists of types) |
+| additionalItems| 🔓 | Enforced with some limitations |
+| items| 🔓 |Enforced if a schema, with limitations if a list of schemas |
+| oneOf| 🔓 | currently enforced as anyOf |
+| $comment| 🤷 | |
+| $id| 🤷 | |
+| $schema | 🤷 | |
+| contentEncoding| 🤷 | |
+| contentMediaType| 🤷 | |
+| description| 🤷 | |
+| examples| 🤷 | |
+| if| 🤷 | if doesn't actually add any constraints unless `then` or `else` are available |
+| readOnly| 🤷 | |
+| title| 🤷 | |
+| contains| ⚠️ |Still investigating enforcemnt |
+| exclusiveMaximum| ⚠️ | Can't enforce using type system |
+| exclusiveMinimum| ⚠️ | Can't enforce using type system |
+| format| ⚠️ | Can't enforce using type system |
+| maximum| ⚠️ | Can't enforce using type system |
+| maxItems| ⚠️ | Can't enforce using type system |
+| maxLength| ⚠️ | Can't enforce using type system |
+| maxProperties| ⚠️ | Can't enforce using type system |
+| minimum| ⚠️ | Can't enforce using type system |
+| minItems| ⚠️ | Can't enforce using type system |
+| minLength| ⚠️ | Can't enforce using type system |
+| minProperties| ⚠️ | Can't enforce using type system |
+| multipleOf| ⚠️ | Can't enforce using type system |
+| not| ⚠️ | Still investigating enforcement |
+| pattern| ⚠️ | Can't enforce using type system |
+| patternProperties| ⚠️ | Can't enforce using type system |
+| propertyNames| ⚠️ | Can't enforce using type system |
+| uniqueItems| ⚠️ | Can't enforce using type system |
+| $ref| ❌ | not yet supported |
+| definitions| ❌ | not yet supported |
+| dependencies| ❌ | not yet supported |
 
-(List of keywords taken from `https://github.com/epoberezkin/ajv/blob/master/KEYWORDS.md`)
-
-See [src/tsjson-parser.ts](./src/tsjson-parser.ts) for more details.
+See [src/tsjson-parser.ts](./src/tsjson-parser.ts) for more details, and [the tests](./stc/tsjson.test.ts) for interactive examples.
 
 ## Installation
 `npm i ts-json-validator`
