@@ -37,7 +37,7 @@ First, import the important stuff:
 
 `import { createSchema as S, TsjsonParser, Validator } from "ts-json-validator"`
 
-Then define a schema. `ts-json-validator` currently supports every keyword except `$ref`, `definitions`, and `dependencies`.
+Then define a schema. `ts-json-validator` currently supports every keyword, though not all of them contribute to the final derived type.
 
 Let's say we want to define a schema that accepts objects with fields "a", "b", and "c".
 A is a required string, b is an optional number, and c is an optional string that can only take on the values "B1" or "B2".
@@ -184,6 +184,7 @@ NOT SUPPORTED (❌) means you can't currently define a TsjsonSchema that include
 | additionalItems| 🔓 | Enforced with some limitations |
 | items| 🔓 |Enforced if a schema, with limitations if a list of schemas |
 | oneOf| 🔓 | currently enforced as anyOf |
+| dependencies| 🔓 | Dependency schemas are not yet enforced. |
 | $comment| 🤷 | |
 | $id| 🤷 | |
 | $schema | 🤷 | |
@@ -212,9 +213,8 @@ NOT SUPPORTED (❌) means you can't currently define a TsjsonSchema that include
 | patternProperties| ⚠️ | Can't enforce using type system |
 | propertyNames| ⚠️ | Can't enforce using type system |
 | uniqueItems| ⚠️ | Can't enforce using type system |
-| $ref| ❌ | not yet supported |
-| definitions| ❌ | not yet supported |
-| dependencies| ❌ | not yet supported |
+| $ref| ⚠️ | Still investigating enforcement. If you want a recursive type, you can use $ref, but the typescript type will not be strict. If you just want to refer to another type, don't use $ref – just assign a schema to a variable and use it in multiple places. |
+| definitions| ⚠️ | Still investigating enforcement along with $ref. |
 
 See [src/tsjson-parser.ts](./src/tsjson-parser.ts) for more details, and [the tests](./stc/tsjson.test.ts) for interactive examples.
 

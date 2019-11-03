@@ -176,6 +176,11 @@ interface Schema<
   If extends SchemaLike | undefined = undefined,
   Then extends SchemaLike | undefined = undefined,
   Else extends SchemaLike | undefined = undefined,
+  Definitions extends { [k: string]: SchemaLike } | undefined = undefined, // not yet enforced via refs
+  Ref extends string | undefined = undefined, // ref just gives unknown types for now. TODO: connect with definitions and get proper recursive types here.
+  Dependencies extends
+    | { [k in keyof Properties]: SchemaLike | keyof Properties[] }
+    | undefined = undefined,
   CalculatedType = ConstConstraint<Const> &
     SimpleTypeConstraint<Type> &
     EnumConstraint<Enum> &
@@ -189,7 +194,7 @@ interface Schema<
 > {
   $id?: string; // 🤷 adds no constraints, can be in any schema.
   $schema?: "http://json-schema.org/draft-07/schema#"; // 🤷 if you want to specify the schema, it's got to be draft-07 right now!
-  // $ref?: string; // not yet supported
+  $ref?: Ref; // ⚠️ not yet enforced. Going to have to try to figure out how to do this without breaking semantics.
   $comment?: string; // 🤷 adds no constraints, can be in any schema
   title?: string; // 🤷 adds no constraints, can be in any schema
   description?: string; // 🤷 adds no constraints, can be in any schema
@@ -218,12 +223,12 @@ interface Schema<
   minProperties?: Type extends "object" ? number : never; // ⚠️ only makes sense for object types
   required?: Type extends "object" ? Required : never; // 💪 only makes sense for object types
   additionalProperties?: Type extends "object" ? AdditionalProperties : never; // 💪 only makes sense for object types
-  // definitions?: // not yet supported
+  definitions?: Definitions; // ⚠️ not yet enforced
   properties?: Type extends "object" ? Properties : never; // 💪 only makes sense for object types
   patternProperties?: Type extends "object"
     ? { [k: string]: SchemaLike }
     : never; // ⚠️ only makes sense for object types
-  // dependencies?: // not yet supported
+  dependencies?: Type extends "object" ? Dependencies : never; // ⚠️ not yet enforced
   propertyNames?: Type extends "object" ? SchemaLike : never; // ⚠️ only makes sense for object types
   const?: Const; // 💪
   enum?: Enum; // 💪
@@ -260,7 +265,12 @@ export const createSchema = <
   Not extends SchemaLike | undefined = undefined,
   If extends SchemaLike | undefined = undefined,
   Then extends SchemaLike | undefined = undefined,
-  Else extends SchemaLike | undefined = undefined
+  Else extends SchemaLike | undefined = undefined,
+  Definitions extends { [k: string]: SchemaLike } | undefined = undefined,
+  Ref extends string | undefined = undefined,
+  Dependencies extends
+    | { [k in keyof Properties]: SchemaLike | keyof Properties[] }
+    | undefined = undefined
 >(
   schema: Schema<
     Type,
@@ -277,7 +287,10 @@ export const createSchema = <
     Not,
     If,
     Then,
-    Else
+    Else,
+    Definitions,
+    Ref,
+    Dependencies
   >
 ) =>
   // require the InternalTypeSymbol here so we can't pass illegitimate schemas into
