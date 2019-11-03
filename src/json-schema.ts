@@ -265,7 +265,12 @@ export const createSchema = <
   Not extends SchemaLike | undefined = undefined,
   If extends SchemaLike | undefined = undefined,
   Then extends SchemaLike | undefined = undefined,
-  Else extends SchemaLike | undefined = undefined
+  Else extends SchemaLike | undefined = undefined,
+  Definitions extends { [k: string]: SchemaLike } | undefined = undefined,
+  Ref extends string | undefined = undefined,
+  Dependencies extends
+    | { [k in keyof Properties]: SchemaLike | keyof Properties[] }
+    | undefined = undefined
 >(
   schema: Schema<
     Type,
@@ -282,7 +287,10 @@ export const createSchema = <
     Not,
     If,
     Then,
-    Else
+    Else,
+    Definitions,
+    Ref,
+    Dependencies
   >
 ) =>
   // require the InternalTypeSymbol here so we can't pass illegitimate schemas into

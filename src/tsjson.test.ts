@@ -374,3 +374,59 @@ describe("Odd combinations of things", () => {
     expect(parsed).toBe("z");
   });
 });
+
+describe("Ref tests", () => {
+  // Hope to be able to delete this test soon, and also maybe enforce that every ref
+  // points to a depencency (but TBD whether this is actually desired, since refs can be valid outside of the schema)
+  // Example taken from https://json-schema.org/understanding-json-schema/structuring.html
+  test("Any ref is unknown :( ", () => {
+    const parser = new TsjsonParser(
+      S({
+        $schema: "http://json-schema.org/draft-07/schema#",
+
+        definitions: {
+          person: S({
+            type: "object",
+            properties: {
+              name: S({ type: "string" }),
+              children: S({
+                type: "array",
+                items: S({ $ref: "#/definitions/person" }),
+                default: []
+              })
+            }
+          })
+        },
+
+        type: "object",
+
+        properties: {
+          person: S({ $ref: "#/definitions/person" })
+        }
+      })
+    );
+    const toParse = {
+      person: {
+        name: "Elizabeth",
+        children: [
+          {
+            name: "Charles",
+            children: [
+              {
+                name: "William",
+                children: [{ name: "George" }, { name: "Charlotte" }]
+              },
+              {
+                name: "Harry"
+              }
+            ]
+          }
+        ]
+      }
+    };
+
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<{ [k: string]: unknown } & { person?: unknown }>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+  });
+});
