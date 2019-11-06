@@ -5,7 +5,7 @@ ts-json-validator
 
 Let JSON play nicely with Typescript.
 
-### ⚠️ Warning: This project uses some features from Typescript 3.7, which is not yet officially released.
+### ⚠️ Warning: This project requires some features from Typescript 3.7, which was just released!
 
 ## Type once, check all the time
 
@@ -40,7 +40,7 @@ First, import the important stuff:
 Then define a schema. `ts-json-validator` currently supports every keyword, though not all of them contribute to the final derived type.
 
 Let's say we want to define a schema that accepts objects with fields "a", "b", and "c".
-A is a required string, b is an optional number, and c is an optional string that can only take on the values "B1" or "B2".
+"a" is a required string, "b" is an optional number, and "c" is an optional string that can only take on the values "B1" or "B2".
 
 ```
 // Make a parser that accepts objects with fields "a", "b", and "c"
@@ -133,8 +133,9 @@ See the tests for more examples.
 
 ## Goal
 Ultimately, I hope that this can generate Typescript type/JSON schema pairs `<T, s>` such that
-    1. Any type that `s` can validate is assignable to `T`
-    2. As few types as possible that are assignable to `T` cannot be validated by `s`.
+
+1. Any type that `s` can validate is assignable to `T`
+2. As few types as possible that are assignable to `T` cannot be validated by `s`.
 
 - Step (1) is easily possible by assigning type `T` = any, but we want to narrow the type as far as possible to make this
 library actually useful.
@@ -224,6 +225,11 @@ See [src/tsjson-parser.ts](./src/tsjson-parser.ts) for more details, and [the te
 ## How does all this work?
 The object built up has the structure of a valid JSON schema with one extra magic feature: a hidden symbol that every
 schema uses to hold its own type.
+
+## Stability
+The API is subject to change until 1.0, but the runtime behavior is very straightforward and is unlikely to be any
+more dangerous than ajv by itself. If you want to use this in a production-critical environment, I recommend pinning
+an exact release until 1.0 is out.
 
 ## Contributing
 Please do!
