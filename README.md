@@ -30,7 +30,7 @@ type, that's OK too.
 
 `ts-json-validator` exposes a pretty small API. It allows you to create and validate against a schema compliant with
 [draft-07 of JSON Schema](http://json-schema.org/draft-07/schema#) that also exposes a strict Typescript type expressing
-the types assignable to the schema. `ts-json-validator` implements most, but not (quite) all, of draft-07.
+the types assignable to the schema. `ts-json-validator` implements all of draft-07.
 
 ## Usage
 First, import the important stuff:
@@ -121,10 +121,16 @@ const parsed = parser.parse(stringToParse, true);
 
 If you just want to validate an object against the schema, but have no need to parse it, run
 
-`parser.validate(obj)`
+`parser.validates(obj)`
 
-This is a typescript assertion function (introduced in 3.7) that will either throw or narrow the type of `obj`
-in the rest of the scope.
+This is a type guard that returns `true` if obj can be validated by parser, otherwise `false`.
+
+```
+if (parser.validates(obj))
+ // obj is the correct type in here
+)
+// obj is the unvalidated type out here
+```
 
 If you have a schema and want to use its type in helper functions, there is a helper type `Validated<T>`
 such that `Validated<typeof schema>` is the type defining all types that are assignable to this `schema`.
