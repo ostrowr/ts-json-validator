@@ -163,17 +163,15 @@ describe("Sanity-checks:", () => {
   });
 
   test("Ensure validate is not called if skipValidation is true", () => {
-    /* eslint-disable @typescript-eslint/unbound-method */
     const parser = new TsjsonParser(S({ type: "null" }));
-    parser.validate = jest.fn();
+    const spy = jest.spyOn(parser, "validates");
     const parsed = parser.parse(JSON.stringify(null));
     expectType<null>(parsed);
     expect(parsed).toBe(null);
-    expect(parser.validate).toBeCalledTimes(1);
+    expect(spy).toBeCalledTimes(1);
     parser.parse(JSON.stringify(null), true);
-    expect(parser.validate).toBeCalledTimes(1);
+    expect(spy).toBeCalledTimes(1);
     expect(ajv.validateSchema(parser.schema)).toBe(true);
-    /* eslint-enable @typescript-eslint/unbound-method */
   });
 
   test("SkipValidation is dangerous", () => {
@@ -181,7 +179,7 @@ describe("Sanity-checks:", () => {
     const parsed = parser.parse(JSON.stringify(SAMPLE_STRING_1), true);
     expectType<null>(parsed); // typeof parsed === null, which is wrong!
     expect(parsed).toBe(SAMPLE_STRING_1);
-    expect(() => parser.validate(parsed)).toThrow();
+    expect(parser.validates(parsed)).toBe(false);
     expect(ajv.validateSchema(parser.schema)).toBe(true);
   });
 
