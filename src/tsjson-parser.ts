@@ -25,11 +25,15 @@ export class TsjsonParser<T extends SchemaLike> {
     this.validator = ajv.compile(schema);
   }
 
-  public validate(data: unknown): asserts data is Validated<T> {
+  // call this to get the errors from the most recent validation call.
+  public getErrors = () => this.validator.errors;
+
+  public validates(data: unknown): data is Validated<T> {
     const valid = this.validator(data);
     if (!valid) {
-      throw new Error(JSON.stringify(this.validator.errors));
+      return false;
     }
+    return true;
   }
 
   public parse = (text: string, skipValidation = false): Validated<T> => {
@@ -37,7 +41,9 @@ export class TsjsonParser<T extends SchemaLike> {
     if (skipValidation) {
       return data;
     }
-    this.validate(data);
-    return data;
+    if (this.validates(data)) {
+      return data;
+    }
+    throw new Error(JSON.stringify(this.validator.errors));
   };
 }
