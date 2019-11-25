@@ -35,7 +35,7 @@ the types assignable to the schema. `ts-json-validator` implements all of draft-
 ## Usage
 First, import the important stuff:
 
-`import { createSchema as S, TsjsonParser, Validator } from "ts-json-validator"`
+`import { createSchema as S, TsjsonParser, Validated } from "ts-json-validator"`
 
 Then define a schema. `ts-json-validator` currently supports every keyword, though not all of them contribute to the final derived type.
 
