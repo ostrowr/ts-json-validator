@@ -223,7 +223,7 @@ NOT SUPPORTED (❌) means you can't currently define a TsjsonSchema that include
 | $ref| ⚠️ | Still investigating enforcement. If you want a recursive type, you can use $ref, but the typescript type will not be strict. If you just want to refer to another type, don't use $ref – just assign a schema to a variable and use it in multiple places. |
 | definitions| ⚠️ | Still investigating enforcement along with $ref. |
 
-See [src/tsjson-parser.ts](./src/tsjson-parser.ts) for more details, and [the tests](./stc/tsjson.test.ts) for interactive examples.
+See [src/tsjson-parser.ts](./src/tsjson-parser.ts) for more details, and [the tests](./src/tsjson.test.ts) for interactive examples.
 
 ## Installation
 `npm i ts-json-validator`
