@@ -1,6 +1,6 @@
 import Ajv from "ajv";
 
-import { createSchema as S } from "./json-schema";
+import { createSchema as S, JsonValue } from "./json-schema";
 import { TSJSON, TsjsonParser } from "./tsjson-parser";
 
 const SAMPLE_STRING_1 =
@@ -426,6 +426,20 @@ describe("Ref tests", () => {
     const parsed = parser.parse(JSON.stringify(toParse));
     expectType<{ [k: string]: unknown } & { person?: unknown }>(parsed);
     expect(parsed).toStrictEqual(toParse);
+  });
+});
+
+describe("true/false schemas", () => {
+  test("true schema can parse anything", () => {
+    const parser = new TsjsonParser(S(true));
+    const parsed = parser.parse(JSON.stringify("z"));
+    expectType<JsonValue>(parsed);
+    expect(parsed).toBe("z");
+  });
+
+  test("false schema always fails", () => {
+    const parser = new TsjsonParser(S(false));
+    expect(() => parser.parse(JSON.stringify("z"))).toThrow();
   });
 });
 
