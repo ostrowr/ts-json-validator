@@ -162,7 +162,7 @@ type IfThenElseConstraint<
 
 // Make it impossible to define an invalid schema, and also impossible to define a schema that just doesn't make sense
 // (e.g. no reason to have a minimum constraint on a string.)
-interface Schema<
+export interface Schema<
   Type extends SimpleType | undefined = undefined, // type can be either a single type or a list of types (TODO allow it to be a list of types) (| readonly SimpleType[])
   Properties extends { [k: string]: SchemaLike } | undefined = undefined,
   Items extends (SchemaLike | readonly SchemaLike[]) | undefined = undefined,
@@ -272,36 +272,41 @@ export const createSchema = <
   Ref extends string | undefined = undefined,
   Dependencies extends
     | { [k in keyof Properties]: SchemaLike | keyof Properties[] }
-    | undefined = undefined
+    | undefined = undefined,
+  BooleanValue extends boolean | undefined = undefined
 >(
-  schema: Schema<
-    Type,
-    Properties,
-    Items,
-    AdditionalItems,
-    AdditionalProperties,
-    Required,
-    Const,
-    Enum,
-    AllOf,
-    AnyOf,
-    OneOf,
-    Not,
-    If,
-    Then,
-    Else,
-    Definitions,
-    Ref,
-    Dependencies
-  >
-) =>
-  // require the InternalTypeSymbol here so we can't pass illegitimate schemas into
-  // the tsjsonParser class.
-  {
-    return {
-      ...schema,
-      "#__internaltype__#": {} as NonNullable<
-        typeof schema[typeof InternalTypeSymbol]
+  schema:
+    | Schema<
+        Type,
+        Properties,
+        Items,
+        AdditionalItems,
+        AdditionalProperties,
+        Required,
+        Const,
+        Enum,
+        AllOf,
+        AnyOf,
+        OneOf,
+        Not,
+        If,
+        Then,
+        Else,
+        Definitions,
+        Ref,
+        Dependencies
       >
-    };
-  };
+    | BooleanValue
+) => {
+  type schemaType = Exclude<typeof schema, BooleanValue>;
+  type InternalType = BooleanValue extends true
+    ? { "#__internaltype__#": JsonValue }
+    : BooleanValue extends false
+    ? { "#__internaltype__#": never }
+    : {
+        "#__internaltype__#": NonNullable<
+          schemaType[typeof InternalTypeSymbol]
+        >;
+      };
+  return schema as schemaType & InternalType;
+};
