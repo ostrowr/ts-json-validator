@@ -428,3 +428,11 @@ describe("Ref tests", () => {
     expect(parsed).toStrictEqual(toParse);
   });
 });
+
+// checking that we can export schemas and parsers without warnings
+export const schemaToExport = S({
+  type: "string",
+  enum: ["askjdh", "askjdh2"] as const
+});
+
+export const parserToExport = new TsjsonParser(schemaToExport);

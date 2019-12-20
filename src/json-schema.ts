@@ -25,7 +25,9 @@
 // NOT SUPPORTED (❌) means you can't currently define a TsjsonSchema that includes this validation keyword :(
 
 // Symbol needed to compile a program that passes typechecking but still fails schema validation.
-export const InternalTypeSymbol = Symbol("InternalType");
+// This would be much nicer as a unique symbol but we run into issues exporting schemas
+// when we do that. Ideas welcome!
+export const InternalTypeSymbol = "#__internaltype__#";
 
 export type JsonValue =
   | { [property: string]: JsonValue }
@@ -298,7 +300,7 @@ export const createSchema = <
   {
     return {
       ...schema,
-      [InternalTypeSymbol]: {} as NonNullable<
+      "#__internaltype__#": {} as NonNullable<
         typeof schema[typeof InternalTypeSymbol]
       >
     };
