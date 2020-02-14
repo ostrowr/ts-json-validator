@@ -303,7 +303,7 @@ describe("More involved tests with objects", () => {
 
     expectType<object>(parsed.a);
     expectType<object | undefined>(parsed.d);
-    expectType<number>(parsed.anotherProp);
+    expectType<number | undefined>(parsed.anotherProp);
 
     const toFail = {};
     expect(() => parser.parse(JSON.stringify(toFail))).toThrow();
@@ -328,7 +328,7 @@ describe("additionalProperties", () => {
         })
       );
       expectType<{}>(parsed);
-      expectType<never>(parsed.someAdditionalProperty);
+      expectType<undefined>(parsed.someAdditionalProperty);
       expect(parsed).toStrictEqual({});
 
       expectType<Validated<typeof schema>>({});
@@ -356,14 +356,14 @@ describe("additionalProperties", () => {
       expectType<string | undefined>(
         parsedWithOptionalProperty.optionalProperty
       );
-      expectType<never>(parsedWithOptionalProperty.someAdditionalProperty);
+      expectType<undefined>(parsedWithOptionalProperty.someAdditionalProperty);
       expect(parsedWithOptionalProperty).toEqual({
         optionalProperty: "some value"
       });
 
       const parsedWithNoProperties = parser.parse(JSON.stringify({}));
       expectType<{}>(parsedWithNoProperties);
-      expectType<never>(parsedWithNoProperties.someAdditionalProperty);
+      expectType<undefined>(parsedWithNoProperties.someAdditionalProperty);
       expect(parsedWithNoProperties).toEqual({});
 
       expectType<Validated<typeof schema>>({});
@@ -395,7 +395,7 @@ describe("additionalProperties", () => {
         })
       );
       expectType<string>(parsedWithOptionalProperty.requiredProperty);
-      expectType<never>(parsedWithOptionalProperty.someAdditionalProperty);
+      expectType<undefined>(parsedWithOptionalProperty.someAdditionalProperty);
       expect(parsedWithOptionalProperty).toEqual({
         requiredProperty: "some value"
       });
@@ -542,7 +542,7 @@ describe("additionalProperties", () => {
           someAdditionalProperty: 10
         })
       );
-      expectType<number>(parsed.someAdditionalProperty);
+      expectType<number | undefined>(parsed.someAdditionalProperty);
       expect(parsed).toStrictEqual({
         someAdditionalProperty: 10
       });
@@ -576,7 +576,9 @@ describe("additionalProperties", () => {
       expectType<string | undefined>(
         parsedWithOptionalProperty.optionalProperty
       );
-      expectType<number>(parsedWithOptionalProperty.someAdditionalProperty);
+      expectType<number | undefined>(
+        parsedWithOptionalProperty.someAdditionalProperty
+      );
       expect(parsedWithOptionalProperty).toEqual({
         optionalProperty: "some value",
         someAdditionalProperty: 10
@@ -585,7 +587,9 @@ describe("additionalProperties", () => {
       const parsedWithNoProperties = parser.parse(JSON.stringify({}));
       expectType<{}>(parsedWithNoProperties);
       expectType<string | undefined>(parsedWithNoProperties.optionalProperty);
-      expectType<number>(parsedWithNoProperties.someAdditionalProperty);
+      expectType<number | undefined>(
+        parsedWithNoProperties.someAdditionalProperty
+      );
       expect(parsedWithNoProperties).toEqual({});
 
       expectType<Validated<typeof schema>>({});
@@ -626,7 +630,9 @@ describe("additionalProperties", () => {
         })
       );
       expectType<string>(parsedWithOptionalProperty.requiredProperty);
-      expectType<number>(parsedWithOptionalProperty.someAdditionalProperty);
+      expectType<number | undefined>(
+        parsedWithOptionalProperty.someAdditionalProperty
+      );
       expect(parsedWithOptionalProperty).toEqual({
         requiredProperty: "some value",
         someAdditionalProperty: 10

@@ -110,7 +110,7 @@ type PropertiesConstraint<
 type AdditionalPropertiesConstraint<
   AdditionalProperties extends SchemaLike | undefined
 > = AdditionalProperties extends SchemaLike
-  ? { [k: string]: AdditionalProperties[typeof InternalTypeSymbol] }
+  ? Partial<{ [k: string]: AdditionalProperties[typeof InternalTypeSymbol] }>
   : unknown;
 
 // if items is a schema, then every element conforms to it.
