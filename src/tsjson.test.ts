@@ -1,7 +1,7 @@
 import Ajv from "ajv";
 
 import { createSchema as S, JsonValue } from "./json-schema";
-import { TSJSON, TsjsonParser } from "./tsjson-parser";
+import { TSJSON, TsjsonParser, Validated } from "./tsjson-parser";
 
 const SAMPLE_STRING_1 =
   "Baseball is ninety percent mental and the other half is physical.";
@@ -301,10 +301,351 @@ describe("More involved tests with objects", () => {
     >(parsed);
     expect(parsed).toStrictEqual(toParse);
 
+    expectType<object>(parsed.a);
+    expectType<object | undefined>(parsed.d);
     expectType<number>(parsed.anotherProp);
 
     const toFail = {};
     expect(() => parser.parse(JSON.stringify(toFail))).toThrow();
+  });
+});
+
+describe("additionalProperties", () => {
+  describe("false", () => {
+    test("no properties", () => {
+      const schema = S({
+        type: "object",
+        additionalProperties: S(false)
+      });
+
+      const parser = new TsjsonParser(schema, {
+        removeAdditional: true
+      });
+
+      const parsed = parser.parse(
+        JSON.stringify({
+          someAdditionalProperty: "some value"
+        })
+      );
+      expectType<{}>(parsed);
+      expectType<never>(parsed.someAdditionalProperty);
+      expect(parsed).toStrictEqual({});
+
+      expectType<Validated<typeof schema>>({});
+    });
+
+    test("one optional property", () => {
+      const schema = S({
+        type: "object",
+        properties: {
+          optionalProperty: S({ type: "string" })
+        },
+        additionalProperties: S(false)
+      });
+
+      const parser = new TsjsonParser(schema, {
+        removeAdditional: true
+      });
+
+      const parsedWithOptionalProperty = parser.parse(
+        JSON.stringify({
+          optionalProperty: "some value",
+          someAdditionalProperty: "some value"
+        })
+      );
+      expectType<string | undefined>(
+        parsedWithOptionalProperty.optionalProperty
+      );
+      expectType<never>(parsedWithOptionalProperty.someAdditionalProperty);
+      expect(parsedWithOptionalProperty).toEqual({
+        optionalProperty: "some value"
+      });
+
+      const parsedWithNoProperties = parser.parse(JSON.stringify({}));
+      expectType<{}>(parsedWithNoProperties);
+      expectType<never>(parsedWithNoProperties.someAdditionalProperty);
+      expect(parsedWithNoProperties).toEqual({});
+
+      expectType<Validated<typeof schema>>({});
+
+      // TODO(microsoft/TypeScript#17867) these would be ideal, but they're blocked by a Typescript limitation
+      // expectType<Validated<typeof schema>>({
+      //   optionalProperty: "string"
+      // });
+    });
+
+    test("one required property", () => {
+      const schema = S({
+        type: "object",
+        properties: {
+          requiredProperty: S({ type: "string" })
+        },
+        additionalProperties: S(false),
+        required: ["requiredProperty"]
+      });
+
+      const parser = new TsjsonParser(schema, {
+        removeAdditional: true
+      });
+
+      const parsedWithOptionalProperty = parser.parse(
+        JSON.stringify({
+          requiredProperty: "some value",
+          someAdditionalProperty: "some value"
+        })
+      );
+      expectType<string>(parsedWithOptionalProperty.requiredProperty);
+      expectType<never>(parsedWithOptionalProperty.someAdditionalProperty);
+      expect(parsedWithOptionalProperty).toEqual({
+        requiredProperty: "some value"
+      });
+
+      expect(() => {
+        parser.parse(JSON.stringify({}));
+      }).toThrowError();
+
+      // TODO(microsoft/TypeScript#17867) these would be ideal, but they're blocked by a Typescript limitation
+      // expectType<Validated<typeof schema>>({
+      //   requiredProperty: "some value"
+      // });
+    });
+  });
+
+  describe("true", () => {
+    test("no properties", () => {
+      const schema = S({
+        type: "object",
+        additionalProperties: S(true)
+      });
+
+      const parser = new TsjsonParser(schema, {
+        removeAdditional: true
+      });
+
+      const parsed = parser.parse(
+        JSON.stringify({
+          someAdditionalProperty: "some value"
+        })
+      );
+      expect(parsed).toStrictEqual({
+        someAdditionalProperty: "some value"
+      });
+
+      expectType<Validated<typeof schema>>({});
+      expectType<Validated<typeof schema>>({
+        someAdditionalProperty: "some string",
+        anotherAdditionalProperty: 1
+      });
+    });
+
+    test("one optional property", () => {
+      const schema = S({
+        type: "object",
+        properties: {
+          optionalProperty: S({ type: "string" })
+        },
+        additionalProperties: S(true)
+      });
+
+      const parser = new TsjsonParser(schema, {
+        removeAdditional: true
+      });
+
+      const parsedWithOptionalProperty = parser.parse(
+        JSON.stringify({
+          optionalProperty: "some value",
+          someAdditionalProperty: "some value"
+        })
+      );
+      expectType<string | undefined>(
+        parsedWithOptionalProperty.optionalProperty
+      );
+      expect(parsedWithOptionalProperty).toEqual({
+        optionalProperty: "some value",
+        someAdditionalProperty: "some value"
+      });
+
+      const parsedWithNoProperties = parser.parse(JSON.stringify({}));
+      expectType<{}>(parsedWithNoProperties);
+      expectType<string | undefined>(parsedWithNoProperties.optionalProperty);
+      expect(parsedWithNoProperties).toEqual({});
+
+      expectType<Validated<typeof schema>>({});
+      expectType<Validated<typeof schema>>({
+        optionalProperty: "string"
+      });
+      expectType<Validated<typeof schema>>({
+        optionalProperty: "string",
+        someAdditionalProperty: "some string",
+        anotherAdditionalProperty: 1
+      });
+      expectType<Validated<typeof schema>>({
+        someAdditionalProperty: "some string",
+        anotherAdditionalProperty: 1
+      });
+    });
+
+    test("one required property", () => {
+      const schema = S({
+        type: "object",
+        properties: {
+          requiredProperty: S({ type: "string" })
+        },
+        additionalProperties: S(true),
+        required: ["requiredProperty"]
+      });
+
+      const parser = new TsjsonParser(schema, {
+        removeAdditional: true
+      });
+
+      const parsedWithOptionalProperty = parser.parse(
+        JSON.stringify({
+          requiredProperty: "some value",
+          someAdditionalProperty: "some value"
+        })
+      );
+      expectType<string>(parsedWithOptionalProperty.requiredProperty);
+      expect(parsedWithOptionalProperty).toEqual({
+        requiredProperty: "some value",
+        someAdditionalProperty: "some value"
+      });
+
+      expect(() => {
+        parser.parse(JSON.stringify({}));
+      }).toThrowError();
+
+      expectType<Validated<typeof schema>>({
+        requiredProperty: "some value"
+      });
+      expectType<Validated<typeof schema>>({
+        requiredProperty: "string",
+        someAdditionalProperty: "some string",
+        anotherAdditionalProperty: 1
+      });
+    });
+  });
+
+  describe("some schema", () => {
+    test("no properties", () => {
+      const schema = S({
+        type: "object",
+        additionalProperties: S({ type: "number" })
+      });
+
+      const parser = new TsjsonParser(schema, {
+        removeAdditional: true
+      });
+
+      const parsed = parser.parse(
+        JSON.stringify({
+          someAdditionalProperty: 10
+        })
+      );
+      expectType<number>(parsed.someAdditionalProperty);
+      expect(parsed).toStrictEqual({
+        someAdditionalProperty: 10
+      });
+
+      expectType<Validated<typeof schema>>({});
+      expectType<Validated<typeof schema>>({
+        someAdditionalProperty: 10,
+        anotherAdditionalProperty: 42
+      });
+    });
+
+    test("one optional property", () => {
+      const schema = S({
+        type: "object",
+        properties: {
+          optionalProperty: S({ type: "string" })
+        },
+        additionalProperties: S({ type: "number" })
+      });
+
+      const parser = new TsjsonParser(schema, {
+        removeAdditional: true
+      });
+
+      const parsedWithOptionalProperty = parser.parse(
+        JSON.stringify({
+          optionalProperty: "some value",
+          someAdditionalProperty: 10
+        })
+      );
+      expectType<string | undefined>(
+        parsedWithOptionalProperty.optionalProperty
+      );
+      expectType<number>(parsedWithOptionalProperty.someAdditionalProperty);
+      expect(parsedWithOptionalProperty).toEqual({
+        optionalProperty: "some value",
+        someAdditionalProperty: 10
+      });
+
+      const parsedWithNoProperties = parser.parse(JSON.stringify({}));
+      expectType<{}>(parsedWithNoProperties);
+      expectType<string | undefined>(parsedWithNoProperties.optionalProperty);
+      expectType<number>(parsedWithNoProperties.someAdditionalProperty);
+      expect(parsedWithNoProperties).toEqual({});
+
+      expectType<Validated<typeof schema>>({});
+      expectType<Validated<typeof schema>>({
+        someAdditionalProperty: 10,
+        anotherAdditionalProperty: 42
+      });
+
+      // TODO(microsoft/TypeScript#17867) these would be ideal, but they're blocked by a Typescript limitation
+      // expectType<Validated<typeof schema>>({
+      //   optionalProperty: "string"
+      // });
+      // expectType<Validated<typeof schema>>({
+      //   optionalProperty: "string"
+      //   someAdditionalProperty: 10,
+      //   anotherAdditionalProperty: 42
+      // });
+    });
+
+    test("one required property", () => {
+      const schema = S({
+        type: "object",
+        properties: {
+          requiredProperty: S({ type: "string" })
+        },
+        additionalProperties: S({ type: "number" }),
+        required: ["requiredProperty"]
+      });
+
+      const parser = new TsjsonParser(schema, {
+        removeAdditional: true
+      });
+
+      const parsedWithOptionalProperty = parser.parse(
+        JSON.stringify({
+          requiredProperty: "some value",
+          someAdditionalProperty: 10
+        })
+      );
+      expectType<string>(parsedWithOptionalProperty.requiredProperty);
+      expectType<number>(parsedWithOptionalProperty.someAdditionalProperty);
+      expect(parsedWithOptionalProperty).toEqual({
+        requiredProperty: "some value",
+        someAdditionalProperty: 10
+      });
+
+      expect(() => {
+        parser.parse(JSON.stringify({}));
+      }).toThrowError();
+
+      // TODO(microsoft/TypeScript#17867) these would be ideal, but they're blocked by a Typescript limitation
+      // expectType<Validated<typeof schema>>({
+      //   requiredProperty: "some value"
+      // });
+      // expectType<Validated<typeof schema>>({
+      //   requiredProperty: "string",
+      //   someAdditionalProperty: 10,
+      //   anotherAdditionalProperty: 42
+      // });
+    });
   });
 });
 
