@@ -10,7 +10,8 @@ const SAMPLE_STRING_1 =
 // should eventually use something stricter like `tsd` but I'd probably have to roll my own to
 // get it to work for this use case.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const expectType = <T>(_: T) => {};
+const expectTrue = <T extends true>() => {};
+type Equal<A, B> = A extends B ? B extends A ? true : false : false
 
 const ajv = new Ajv();
 
@@ -19,7 +20,7 @@ describe("Sanity-checks:", () => {
     const toSerialize = { something: 1, somethingElse: "2" };
     const serialized = TSJSON.stringify(toSerialize); // serialized: TsjsonString<typeof toSerialize>
     const parsed = TSJSON.parse(serialized); // parsed: typeof toSerialize
-    expectType<typeof toSerialize>(parsed);
+    expectTrue<Equal<typeof toSerialize, typeof parsed>>()
     expect(parsed.something).toBe(1);
     expect(parsed.somethingElse).toBe("2");
   });
@@ -27,7 +28,7 @@ describe("Sanity-checks:", () => {
   test("A string is a valid schema", () => {
     const parser = new TsjsonParser(S({ type: "string" }));
     const parsed = parser.parse(JSON.stringify(SAMPLE_STRING_1));
-    expectType<string>(parsed);
+    expectTrue<Equal<string, typeof parsed>>();
     expect(parsed).toBe(SAMPLE_STRING_1);
     expect(parser.schema).toMatchObject({ type: "string" });
     expect(ajv.validateSchema(parser.schema)).toBe(true);
