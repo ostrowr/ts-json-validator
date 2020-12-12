@@ -784,6 +784,19 @@ describe("true/false schemas", () => {
   });
 });
 
+describe("Get errors", () => {
+  test("Parser can get null errors", () => {
+    const parser = new TsjsonParser(S(false));
+    expect(parser.getErrors()).toBeNull();
+  });
+
+  test("Parser can get legitimate errors", () => {
+    const parser = new TsjsonParser(S(false));
+    expect(() => parser.parse(JSON.stringify("z"))).toThrow();
+    expect(parser.getErrors()).toHaveLength(1);
+  });
+});
+
 // checking that we can export schemas and parsers without warnings
 export const schemaToExport = S({
   type: "string",
