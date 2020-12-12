@@ -1,7 +1,7 @@
 {
   "name": "ts-json-validator",
-  "version": "0.6.0",
-  "description": "Parse JSON without fear",
+  "version": "0.7.0",
+  "description": "Let JSON play nicely with Typescript.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {
