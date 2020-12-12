@@ -9,7 +9,7 @@ const SAMPLE_STRING_1 =
 // Sanity-check to make sure the type compatible with what we expect.
 // should eventually use something stricter like `tsd` but I'd probably have to roll my own to
 // get it to work for this use case.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function
 const expectType = <T>(_: T) => {};
 
 const ajv = new Ajv();
@@ -43,7 +43,7 @@ describe("Sanity-checks:", () => {
     expect(parsed).toBe("a");
     expect(parser.schema).toMatchObject({
       type: "string",
-      enum: ["a", "b", "c"]
+      enum: ["a", "b", "c"],
     });
     expect(ajv.validateSchema(parser.schema)).toBe(true);
   });
@@ -99,7 +99,7 @@ describe("Sanity-checks:", () => {
     expect(parsed).toStrictEqual([]);
     expectType<unknown[]>(parsed);
     expect(parser.schema).toMatchObject({
-      type: "array"
+      type: "array",
     });
     expect(ajv.validateSchema(parser.schema)).toBe(true);
   });
@@ -116,7 +116,7 @@ describe("Sanity-checks:", () => {
   test("AnyOf works with simple schemas", () => {
     const parser = new TsjsonParser(
       S({
-        anyOf: [S({ type: "string" }), S({ type: "number" })]
+        anyOf: [S({ type: "string" }), S({ type: "number" })],
       })
     );
     let parsed = parser.parse(JSON.stringify(SAMPLE_STRING_1));
@@ -137,20 +137,20 @@ describe("Sanity-checks:", () => {
             properties: {
               a: S({ type: "string", enum: ["a", "b", "c"] as const }),
               b: S({ type: "number" }),
-              d: S({ type: "number" })
+              d: S({ type: "number" }),
             },
-            required: []
+            required: [],
           }),
           S({
             type: "object",
             properties: {
               a: S({ type: "string" }),
               c: S({ type: "string" }),
-              d: S({ type: "string" })
+              d: S({ type: "string" }),
             },
-            required: ["a"]
-          })
-        ]
+            required: ["a"],
+          }),
+        ],
       })
     );
     const parsed = parser.parse(JSON.stringify({ a: "a" }));
@@ -193,7 +193,7 @@ describe("More involved tests with arrays", () => {
     const parser = new TsjsonParser(
       S({
         type: "array",
-        items: S({ type: "object", properties: { a: S({ type: "string" }) } })
+        items: S({ type: "object", properties: { a: S({ type: "string" }) } }),
       })
     );
 
@@ -210,8 +210,8 @@ describe("More involved tests with arrays", () => {
         items: S({
           type: "object",
           properties: { a: S({ type: "string" }) },
-          required: ["a"]
-        })
+          required: ["a"],
+        }),
       })
     );
 
@@ -229,8 +229,8 @@ describe("More involved tests with arrays", () => {
         type: "array",
         items: S({
           type: "array",
-          items: S({ type: "array", items: S({ type: "number" }) })
-        })
+          items: S({ type: "array", items: S({ type: "number" }) }),
+        }),
       })
     );
 
@@ -248,7 +248,7 @@ describe("More involved tests with arrays", () => {
       S({
         type: "array",
         items: [S({ type: "string" })],
-        additionalItems: S({ type: "number" })
+        additionalItems: S({ type: "number" }),
       })
     );
 
@@ -273,10 +273,10 @@ describe("More involved tests with objects", () => {
           c: S({ type: "object" }),
           d: S({ type: "object" }),
           e: S({ type: "string" }),
-          f: S({ type: "number" })
+          f: S({ type: "number" }),
         },
         additionalProperties: S({ type: "number" }),
-        required: ["a", "c", "e"] as const
+        required: ["a", "c", "e"] as const,
       })
     );
 
@@ -284,7 +284,7 @@ describe("More involved tests with objects", () => {
       a: [],
       b: [1, "a", 4],
       c: { hello: 123 },
-      e: "thisisastring"
+      e: "thisisastring",
     } as const;
 
     const parsed = parser.parse(JSON.stringify(toParse));
@@ -301,8 +301,8 @@ describe("More involved tests with objects", () => {
     >(parsed);
     expect(parsed).toStrictEqual(toParse);
 
-    expectType<object>(parsed.a);
-    expectType<object | undefined>(parsed.d);
+    expectType<unknown[]>(parsed.a);
+    expectType<{ [k: string]: unknown } | undefined>(parsed.d);
     expectType<number>(parsed.anotherProp);
 
     const toFail = {};
@@ -315,19 +315,19 @@ describe("additionalProperties", () => {
     test("no properties", () => {
       const schema = S({
         type: "object",
-        additionalProperties: S(false)
+        additionalProperties: S(false),
       });
 
       const parser = new TsjsonParser(schema, {
-        removeAdditional: true
+        removeAdditional: true,
       });
 
       const parsed = parser.parse(
         JSON.stringify({
-          someAdditionalProperty: "some value"
+          someAdditionalProperty: "some value",
         })
       );
-      expectType<{}>(parsed);
+      expectType<Record<string, unknown>>(parsed);
       expectType<never>(parsed.someAdditionalProperty);
       expect(parsed).toStrictEqual({});
 
@@ -338,19 +338,19 @@ describe("additionalProperties", () => {
       const schema = S({
         type: "object",
         properties: {
-          optionalProperty: S({ type: "string" })
+          optionalProperty: S({ type: "string" }),
         },
-        additionalProperties: S(false)
+        additionalProperties: S(false),
       });
 
       const parser = new TsjsonParser(schema, {
-        removeAdditional: true
+        removeAdditional: true,
       });
 
       const parsedWithOptionalProperty = parser.parse(
         JSON.stringify({
           optionalProperty: "some value",
-          someAdditionalProperty: "some value"
+          someAdditionalProperty: "some value",
         })
       );
       expectType<string | undefined>(
@@ -358,11 +358,11 @@ describe("additionalProperties", () => {
       );
       expectType<never>(parsedWithOptionalProperty.someAdditionalProperty);
       expect(parsedWithOptionalProperty).toEqual({
-        optionalProperty: "some value"
+        optionalProperty: "some value",
       });
 
       const parsedWithNoProperties = parser.parse(JSON.stringify({}));
-      expectType<{}>(parsedWithNoProperties);
+      expectType<Record<string, never>>(parsedWithNoProperties);
       expectType<never>(parsedWithNoProperties.someAdditionalProperty);
       expect(parsedWithNoProperties).toEqual({});
 
@@ -378,26 +378,26 @@ describe("additionalProperties", () => {
       const schema = S({
         type: "object",
         properties: {
-          requiredProperty: S({ type: "string" })
+          requiredProperty: S({ type: "string" }),
         },
         additionalProperties: S(false),
-        required: ["requiredProperty"]
+        required: ["requiredProperty"],
       });
 
       const parser = new TsjsonParser(schema, {
-        removeAdditional: true
+        removeAdditional: true,
       });
 
       const parsedWithOptionalProperty = parser.parse(
         JSON.stringify({
           requiredProperty: "some value",
-          someAdditionalProperty: "some value"
+          someAdditionalProperty: "some value",
         })
       );
       expectType<string>(parsedWithOptionalProperty.requiredProperty);
       expectType<never>(parsedWithOptionalProperty.someAdditionalProperty);
       expect(parsedWithOptionalProperty).toEqual({
-        requiredProperty: "some value"
+        requiredProperty: "some value",
       });
 
       expect(() => {
@@ -415,26 +415,26 @@ describe("additionalProperties", () => {
     test("no properties", () => {
       const schema = S({
         type: "object",
-        additionalProperties: S(true)
+        additionalProperties: S(true),
       });
 
       const parser = new TsjsonParser(schema, {
-        removeAdditional: true
+        removeAdditional: true,
       });
 
       const parsed = parser.parse(
         JSON.stringify({
-          someAdditionalProperty: "some value"
+          someAdditionalProperty: "some value",
         })
       );
       expect(parsed).toStrictEqual({
-        someAdditionalProperty: "some value"
+        someAdditionalProperty: "some value",
       });
 
       expectType<Validated<typeof schema>>({});
       expectType<Validated<typeof schema>>({
         someAdditionalProperty: "some string",
-        anotherAdditionalProperty: 1
+        anotherAdditionalProperty: 1,
       });
     });
 
@@ -442,19 +442,19 @@ describe("additionalProperties", () => {
       const schema = S({
         type: "object",
         properties: {
-          optionalProperty: S({ type: "string" })
+          optionalProperty: S({ type: "string" }),
         },
-        additionalProperties: S(true)
+        additionalProperties: S(true),
       });
 
       const parser = new TsjsonParser(schema, {
-        removeAdditional: true
+        removeAdditional: true,
       });
 
       const parsedWithOptionalProperty = parser.parse(
         JSON.stringify({
           optionalProperty: "some value",
-          someAdditionalProperty: "some value"
+          someAdditionalProperty: "some value",
         })
       );
       expectType<string | undefined>(
@@ -462,26 +462,26 @@ describe("additionalProperties", () => {
       );
       expect(parsedWithOptionalProperty).toEqual({
         optionalProperty: "some value",
-        someAdditionalProperty: "some value"
+        someAdditionalProperty: "some value",
       });
 
       const parsedWithNoProperties = parser.parse(JSON.stringify({}));
-      expectType<{}>(parsedWithNoProperties);
+      expectType<Record<string, unknown>>(parsedWithNoProperties);
       expectType<string | undefined>(parsedWithNoProperties.optionalProperty);
       expect(parsedWithNoProperties).toEqual({});
 
       expectType<Validated<typeof schema>>({});
       expectType<Validated<typeof schema>>({
-        optionalProperty: "string"
+        optionalProperty: "string",
       });
       expectType<Validated<typeof schema>>({
         optionalProperty: "string",
         someAdditionalProperty: "some string",
-        anotherAdditionalProperty: 1
+        anotherAdditionalProperty: 1,
       });
       expectType<Validated<typeof schema>>({
         someAdditionalProperty: "some string",
-        anotherAdditionalProperty: 1
+        anotherAdditionalProperty: 1,
       });
     });
 
@@ -489,26 +489,26 @@ describe("additionalProperties", () => {
       const schema = S({
         type: "object",
         properties: {
-          requiredProperty: S({ type: "string" })
+          requiredProperty: S({ type: "string" }),
         },
         additionalProperties: S(true),
-        required: ["requiredProperty"]
+        required: ["requiredProperty"],
       });
 
       const parser = new TsjsonParser(schema, {
-        removeAdditional: true
+        removeAdditional: true,
       });
 
       const parsedWithOptionalProperty = parser.parse(
         JSON.stringify({
           requiredProperty: "some value",
-          someAdditionalProperty: "some value"
+          someAdditionalProperty: "some value",
         })
       );
       expectType<string>(parsedWithOptionalProperty.requiredProperty);
       expect(parsedWithOptionalProperty).toEqual({
         requiredProperty: "some value",
-        someAdditionalProperty: "some value"
+        someAdditionalProperty: "some value",
       });
 
       expect(() => {
@@ -516,12 +516,12 @@ describe("additionalProperties", () => {
       }).toThrowError();
 
       expectType<Validated<typeof schema>>({
-        requiredProperty: "some value"
+        requiredProperty: "some value",
       });
       expectType<Validated<typeof schema>>({
         requiredProperty: "string",
         someAdditionalProperty: "some string",
-        anotherAdditionalProperty: 1
+        anotherAdditionalProperty: 1,
       });
     });
   });
@@ -530,27 +530,27 @@ describe("additionalProperties", () => {
     test("no properties", () => {
       const schema = S({
         type: "object",
-        additionalProperties: S({ type: "number" })
+        additionalProperties: S({ type: "number" }),
       });
 
       const parser = new TsjsonParser(schema, {
-        removeAdditional: true
+        removeAdditional: true,
       });
 
       const parsed = parser.parse(
         JSON.stringify({
-          someAdditionalProperty: 10
+          someAdditionalProperty: 10,
         })
       );
       expectType<number>(parsed.someAdditionalProperty);
       expect(parsed).toStrictEqual({
-        someAdditionalProperty: 10
+        someAdditionalProperty: 10,
       });
 
       expectType<Validated<typeof schema>>({});
       expectType<Validated<typeof schema>>({
         someAdditionalProperty: 10,
-        anotherAdditionalProperty: 42
+        anotherAdditionalProperty: 42,
       });
     });
 
@@ -558,19 +558,19 @@ describe("additionalProperties", () => {
       const schema = S({
         type: "object",
         properties: {
-          optionalProperty: S({ type: "string" })
+          optionalProperty: S({ type: "string" }),
         },
-        additionalProperties: S({ type: "number" })
+        additionalProperties: S({ type: "number" }),
       });
 
       const parser = new TsjsonParser(schema, {
-        removeAdditional: true
+        removeAdditional: true,
       });
 
       const parsedWithOptionalProperty = parser.parse(
         JSON.stringify({
           optionalProperty: "some value",
-          someAdditionalProperty: 10
+          someAdditionalProperty: 10,
         })
       );
       expectType<string | undefined>(
@@ -579,11 +579,11 @@ describe("additionalProperties", () => {
       expectType<number>(parsedWithOptionalProperty.someAdditionalProperty);
       expect(parsedWithOptionalProperty).toEqual({
         optionalProperty: "some value",
-        someAdditionalProperty: 10
+        someAdditionalProperty: 10,
       });
 
       const parsedWithNoProperties = parser.parse(JSON.stringify({}));
-      expectType<{}>(parsedWithNoProperties);
+      expectType<Record<string, unknown>>(parsedWithNoProperties);
       expectType<string | undefined>(parsedWithNoProperties.optionalProperty);
       expectType<number>(parsedWithNoProperties.someAdditionalProperty);
       expect(parsedWithNoProperties).toEqual({});
@@ -591,7 +591,7 @@ describe("additionalProperties", () => {
       expectType<Validated<typeof schema>>({});
       expectType<Validated<typeof schema>>({
         someAdditionalProperty: 10,
-        anotherAdditionalProperty: 42
+        anotherAdditionalProperty: 42,
       });
 
       // TODO(microsoft/TypeScript#17867) these would be ideal, but they're blocked by a Typescript limitation
@@ -609,27 +609,27 @@ describe("additionalProperties", () => {
       const schema = S({
         type: "object",
         properties: {
-          requiredProperty: S({ type: "string" })
+          requiredProperty: S({ type: "string" }),
         },
         additionalProperties: S({ type: "number" }),
-        required: ["requiredProperty"]
+        required: ["requiredProperty"],
       });
 
       const parser = new TsjsonParser(schema, {
-        removeAdditional: true
+        removeAdditional: true,
       });
 
       const parsedWithOptionalProperty = parser.parse(
         JSON.stringify({
           requiredProperty: "some value",
-          someAdditionalProperty: 10
+          someAdditionalProperty: 10,
         })
       );
       expectType<string>(parsedWithOptionalProperty.requiredProperty);
       expectType<number>(parsedWithOptionalProperty.someAdditionalProperty);
       expect(parsedWithOptionalProperty).toEqual({
         requiredProperty: "some value",
-        someAdditionalProperty: 10
+        someAdditionalProperty: 10,
       });
 
       expect(() => {
@@ -683,11 +683,11 @@ describe("Odd combinations of things", () => {
       S({
         anyOf: [
           S({ type: "string", enum: ["a", "b", "c"] as const }),
-          S({ type: "string", enum: ["a", "b", "d"] as const })
+          S({ type: "string", enum: ["a", "b", "d"] as const }),
         ],
 
         // allOf: [S({ type: "string", enum: ["a", "d"] as const })] // is currently deriving a never type, which is wrong
-        allOf: [S({ type: "string" })]
+        allOf: [S({ type: "string" })],
       })
     );
     const parsed = parser.parse(JSON.stringify("a"));
@@ -702,8 +702,8 @@ describe("Odd combinations of things", () => {
         type: "string",
         anyOf: [
           S({ enum: ["a"] as const }),
-          S({ description: "unconstrained" })
-        ]
+          S({ description: "unconstrained" }),
+        ],
       })
     );
 
@@ -731,17 +731,17 @@ describe("Ref tests", () => {
               children: S({
                 type: "array",
                 items: S({ $ref: "#/definitions/person" }),
-                default: []
-              })
-            }
-          })
+                default: [],
+              }),
+            },
+          }),
         },
 
         type: "object",
 
         properties: {
-          person: S({ $ref: "#/definitions/person" })
-        }
+          person: S({ $ref: "#/definitions/person" }),
+        },
       })
     );
     const toParse = {
@@ -753,15 +753,15 @@ describe("Ref tests", () => {
             children: [
               {
                 name: "William",
-                children: [{ name: "George" }, { name: "Charlotte" }]
+                children: [{ name: "George" }, { name: "Charlotte" }],
               },
               {
-                name: "Harry"
-              }
-            ]
-          }
-        ]
-      }
+                name: "Harry",
+              },
+            ],
+          },
+        ],
+      },
     };
 
     const parsed = parser.parse(JSON.stringify(toParse));
@@ -787,7 +787,7 @@ describe("true/false schemas", () => {
 // checking that we can export schemas and parsers without warnings
 export const schemaToExport = S({
   type: "string",
-  enum: ["askjdh", "askjdh2"] as const
+  enum: ["askjdh", "askjdh2"] as const,
 });
 
 export const parserToExport = new TsjsonParser(schemaToExport);

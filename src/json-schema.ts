@@ -44,9 +44,9 @@ type PartialRequire<T, U extends keyof T> = T & Required<Pick<T, U>>;
 // For example, if U = A | B | C, then UnionToIntersection<U> = A & B & C.
 // UnionToIntersection magic taken from https://stackoverflow.com/a/50375286/2407869
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type UnionToIntersection<U> = (U extends any
-? (k: U) => void
-: never) extends (k: infer I) => void
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
+  k: infer I
+) => void
   ? I
   : never;
 
@@ -252,6 +252,7 @@ export interface Schema<
   [InternalTypeSymbol]?: CalculatedType;
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const createSchema = <
   Type extends SimpleType | undefined = undefined,
   Properties extends { [k: string]: SchemaLike } | undefined = undefined,
