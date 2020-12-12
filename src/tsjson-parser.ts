@@ -8,10 +8,10 @@ type TsjsonString<T> = string & {
 };
 
 export const TSJSON = {
-  parse: <T>(input: TsjsonString<T>): T => JSON.parse(input),
+  parse: <T>(input: TsjsonString<T>): T => JSON.parse(input) as T,
 
   stringify: <T>(input: T): TsjsonString<T> =>
-    JSON.stringify(input) as TsjsonString<T>
+    JSON.stringify(input) as TsjsonString<T>,
 };
 
 export type Validated<T extends SchemaLike> = T[typeof InternalTypeSymbol];
@@ -27,7 +27,8 @@ export class TsjsonParser<T extends SchemaLike> {
   }
 
   // call this to get the errors from the most recent validation call.
-  public getErrors = () => this.validator.errors;
+  public getErrors = (): Ajv.ErrorObject[] | null | undefined =>
+    this.validator.errors;
 
   public validates(data: unknown): data is Validated<T> {
     const valid = this.validator(data);

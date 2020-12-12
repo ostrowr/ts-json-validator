@@ -1,14 +1,10 @@
 module.exports = {
   parser: "@typescript-eslint/parser",
-  plugins: [
-    "@typescript-eslint",
-    "@typescript-eslint/tslint",
-    "simple-import-sort"
-  ],
+  plugins: ["@typescript-eslint", "simple-import-sort"],
   parserOptions: {
     project: "tsconfig.json",
     sourceType: "module",
-    tsconfigRootDir: __dirname
+    tsconfigRootDir: __dirname,
   },
   extends: [
     "eslint:recommended",
@@ -16,7 +12,7 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:prettier/recommended",
-    "prettier/@typescript-eslint"
+    "prettier/@typescript-eslint",
   ],
   rules: {
     "simple-import-sort/sort": "error",
@@ -31,16 +27,16 @@ module.exports = {
       "error",
       {
         overrides: {
-          constructors: "off"
-        }
-      }
+          constructors: "off",
+        },
+      },
     ],
     "@typescript-eslint/no-floating-promises": "error",
     "@typescript-eslint/no-misused-promises": [
       "error",
       {
-        checksVoidReturn: false
-      }
+        checksVoidReturn: false,
+      },
     ],
 
     "@typescript-eslint/prefer-for-of": "error",
@@ -53,7 +49,7 @@ module.exports = {
     "arrow-body-style": [
       "error",
       "as-needed",
-      { requireReturnForObjectLiteral: true }
+      { requireReturnForObjectLiteral: true },
     ],
     "arrow-parens": ["off", "as-needed"],
     "default-case": "error",
@@ -71,8 +67,8 @@ module.exports = {
     "no-unused-expressions": [
       "error",
       {
-        allowTaggedTemplates: true
-      }
+        allowTaggedTemplates: true,
+      },
     ],
     "no-var": "error",
     "object-shorthand": "error",
@@ -81,6 +77,6 @@ module.exports = {
     "prefer-const": "error",
     "prefer-object-spread": "error",
     radix: "error",
-    "spaced-comment": "error"
-  }
+    "spaced-comment": "error",
+  },
 };
