@@ -714,6 +714,68 @@ describe("Odd combinations of things", () => {
   });
 });
 
+describe("Schema with if/then/else", () => {
+  const parser = new TsjsonParser(
+    S({
+      type: "object",
+      properties: {
+        country: S({ type: "string", enum: ["US", "CA"] as const }),
+      },
+      required: ["country"],
+      if: S({
+        type: "object",
+        properties: {
+          country: S({ const: "US" }),
+        },
+      }),
+      then: S({
+        type: "object",
+        properties: {
+          zipcode: S({ type: "number" }),
+        },
+        required: ["zipcode"],
+      }),
+      else: S({
+        type: "object",
+        properties: {
+          postal_code: S({ type: "string" }),
+        },
+        required: ["postal_code"],
+      }),
+    })
+  );
+
+  test("if then", () => {
+    const toParse = { country: "US", zipcode: 90210 };
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<{
+      country: "US" | "CA";
+      zipcode?: number;
+      postal_code?: string;
+    }>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+    expect(() => parser.parse(JSON.stringify({ country: "US" }))).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "US", zipcode: "90210" }))
+    ).toThrow();
+  });
+
+  test("if else", () => {
+    const toParse = { country: "CA", postal_code: "E0J 1V0" };
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<{
+      country: "US" | "CA";
+      zipcode?: number;
+      postal_code?: string;
+    }>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+    expect(() => parser.parse(JSON.stringify({ country: "CA" }))).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "CA", postal_code: 12345 }))
+    ).toThrow();
+  });
+});
+
 describe("Ref tests", () => {
   // Hope to be able to delete this test soon, and also maybe enforce that every ref
   // points to a depencency (but TBD whether this is actually desired, since refs can be valid outside of the schema)

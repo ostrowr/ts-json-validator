@@ -239,12 +239,12 @@ export interface Schema<
   contentMediaType?: Type extends "string" ? string : never; // 🤷
   contentEncoding?: Type extends "string" ? string : never; // 🤷
   if?: Then extends SchemaLike // 🤷
-    ? SchemaLike
+    ? If
     : Else extends SchemaLike
-    ? SchemaLike
+    ? If
     : never; // If `if` is specified, then at least one of `then` or `else` should be specified.
-  then?: If extends SchemaLike ? SchemaLike : never; // 💪 Only matters if `if` is supplied
-  else?: If extends SchemaLike ? SchemaLike : never; // 💪 Only matters if `if` is supplied
+  then?: If extends SchemaLike ? Then : never; // 💪 Only matters if `if` is supplied
+  else?: If extends SchemaLike ? Else : never; // 💪 Only matters if `if` is supplied
   allOf?: AllOf; // 💪
   anyOf?: AnyOf; // 💪
   oneOf?: OneOf; // 🔓
