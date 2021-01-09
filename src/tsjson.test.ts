@@ -714,12 +714,12 @@ describe("Odd combinations of things", () => {
   });
 });
 
-describe("Schema with if/then/else", () => {
+describe("Conditional subschemas with if/then/else", () => {
   const parser = new TsjsonParser(
     S({
       type: "object",
       properties: {
-        country: S({ type: "string", enum: ["US", "CA"] as const }),
+        country: S({ enum: ["US", "CA"] as const }),
       },
       required: ["country"],
       if: S({
@@ -783,12 +783,12 @@ describe("Schema with if/then/else", () => {
   });
 });
 
-describe("Schema with allOf/if/then", () => {
+describe("Conditional subschemas with allOf/if/then", () => {
   const parser = new TsjsonParser(
     S({
       type: "object",
       properties: {
-        country: S({ type: "string", enum: ["US", "CA", "NL"] as const }),
+        country: S({ enum: ["US", "CA", "NL"] as const }),
       },
       required: ["country"],
       allOf: [
