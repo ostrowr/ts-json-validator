@@ -714,6 +714,191 @@ describe("Odd combinations of things", () => {
   });
 });
 
+describe("Conditional subschemas with if/then/else", () => {
+  const parser = new TsjsonParser(
+    S({
+      type: "object",
+      properties: {
+        country: S({ enum: ["US", "CA"] as const }),
+      },
+      required: ["country"],
+      if: S({
+        type: "object",
+        properties: {
+          country: S({ const: "US" }),
+        },
+      }),
+      then: S({
+        type: "object",
+        properties: {
+          postal_code: S({ type: "string", pattern: "[0-9]{5}(-[0-9]{4})?" }),
+        },
+        required: ["postal_code"],
+      }),
+      else: S({
+        type: "object",
+        properties: {
+          postal_code: S({
+            type: "string",
+            pattern: "[A-Z][0-9][A-Z] [0-9][A-Z][0-9]",
+          }),
+        },
+        required: ["postal_code"],
+      }),
+    })
+  );
+
+  test("then", () => {
+    const toParse = { country: "US", postal_code: "11111" };
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<{
+      country: "US" | "CA";
+      postal_code?: string;
+    }>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+    expect(() => parser.parse(JSON.stringify({ country: "US" }))).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "US", postal_code: 11111 }))
+    ).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "US", postal_code: "AAAAA" }))
+    ).toThrow();
+  });
+
+  test("else", () => {
+    const toParse = { country: "CA", postal_code: "A1A 1A1" };
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<{
+      country: "US" | "CA";
+      postal_code?: string;
+    }>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+    expect(() => parser.parse(JSON.stringify({ country: "CA" }))).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "CA", postal_code: 11111 }))
+    ).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "CA", postal_code: "1A1 A1A" }))
+    ).toThrow();
+  });
+});
+
+describe("Conditional subschemas with allOf/if/then", () => {
+  const parser = new TsjsonParser(
+    S({
+      type: "object",
+      properties: {
+        country: S({ enum: ["US", "CA", "NL"] as const }),
+      },
+      required: ["country"],
+      allOf: [
+        S({
+          if: S({
+            type: "object",
+            properties: {
+              country: S({ const: "US" }),
+            },
+          }),
+          then: S({
+            type: "object",
+            properties: {
+              postal_code: S({
+                type: "string",
+                pattern: "[0-9]{5}(-[0-9]{4})?",
+              }),
+            },
+            required: ["postal_code"],
+          }),
+        }),
+        S({
+          if: S({
+            type: "object",
+            properties: {
+              country: S({ const: "CA" }),
+            },
+          }),
+          then: S({
+            type: "object",
+            properties: {
+              postal_code: S({
+                type: "string",
+                pattern: "[A-Z][0-9][A-Z] [0-9][A-Z][0-9]",
+              }),
+            },
+            required: ["postal_code"],
+          }),
+        }),
+        S({
+          if: S({
+            type: "object",
+            properties: {
+              country: S({ const: "NL" }),
+            },
+          }),
+          then: S({
+            type: "object",
+            properties: {
+              postal_code: S({ type: "string", pattern: "[0-9]{4} [A-Z]{2}" }),
+            },
+            required: ["postal_code"],
+          }),
+        }),
+      ],
+    })
+  );
+
+  test("then 1", () => {
+    const toParse = { country: "US", postal_code: "11111" };
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<{
+      country: "US" | "CA" | "NL";
+      postal_code?: string;
+    }>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+    expect(() => parser.parse(JSON.stringify({ country: "US" }))).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "US", postal_code: 11111 }))
+    ).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "US", postal_code: "AAAAA" }))
+    ).toThrow();
+  });
+
+  test("then 2", () => {
+    const toParse = { country: "CA", postal_code: "A1A 1A1" };
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<{
+      country: "US" | "CA" | "NL";
+      postal_code?: string;
+    }>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+    expect(() => parser.parse(JSON.stringify({ country: "CA" }))).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "CA", postal_code: 11111 }))
+    ).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "CA", postal_code: "1A1 A1A" }))
+    ).toThrow();
+  });
+
+  test("then 3", () => {
+    const toParse = { country: "NL", postal_code: "1111 AA" };
+    const parsed = parser.parse(JSON.stringify(toParse));
+    expectType<{
+      country: "US" | "CA" | "NL";
+      postal_code?: string;
+    }>(parsed);
+    expect(parsed).toStrictEqual(toParse);
+    expect(() => parser.parse(JSON.stringify({ country: "NL" }))).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "NL", postal_code: 11111 }))
+    ).toThrow();
+    expect(() =>
+      parser.parse(JSON.stringify({ country: "NL", postal_code: "AAAA 11" }))
+    ).toThrow();
+  });
+});
+
 describe("Ref tests", () => {
   // Hope to be able to delete this test soon, and also maybe enforce that every ref
   // points to a depencency (but TBD whether this is actually desired, since refs can be valid outside of the schema)
