@@ -32,17 +32,24 @@ type, that's OK too.
 [draft-07 of JSON Schema](http://json-schema.org/draft-07/schema#) that also exposes a strict Typescript type expressing
 the types assignable to the schema. `ts-json-validator` implements all of draft-07.
 
+## Installation
+```
+npm i ts-json-validator
+```
+
 ## Usage
 First, import the important stuff:
 
-`import { createSchema as S, TsjsonParser, Validated } from "ts-json-validator"`
+```ts
+import { createSchema as S, TsjsonParser, Validated } from "ts-json-validator"
+```
 
 Then define a schema. `ts-json-validator` currently supports every keyword, though not all of them contribute to the final derived type.
 
 Let's say we want to define a schema that accepts objects with fields "a", "b", and "c".
 "a" is a required string, "b" is an optional number, and "c" is an optional string that can only take on the values "B1" or "B2".
 
-```
+```ts
 // Make a parser that accepts objects with fields "a", "b", and "c"
 const parser = new TsjsonParser(
   S({
@@ -59,7 +66,7 @@ const parser = new TsjsonParser(
 
 You can see the generated schema:
 
-```
+```ts
 JSON.stringify(parser.schema)
 /*
 {
@@ -89,7 +96,7 @@ JSON.stringify(parser.schema)
 
 Or parse some string:
 
-```
+```ts
 const stringToParse = JSON.stringify({ a: "Value for field A" });
 
 const parsed = parser.parse(stringToParse);
@@ -105,7 +112,7 @@ console.log(parsed)
 ```
 
 If you parse a string that doesn't match the schema and so can't be assigned to the expected type, it throws
-```
+```ts
 const stringToParse = JSON.stringify({ a: "Value for field A", c: "Invalid" });
 
 const parsed = parser.parse(stringToParse);
@@ -114,18 +121,20 @@ const parsed = parser.parse(stringToParse);
 ```
 
 You can skip validation, of course, but this is dangerous if you don't control the input:
-```
+```ts
 const parsed = parser.parse(stringToParse, true);
 // no validation; parsed might be the wrong type here.
 ```
 
 If you just want to validate an object against the schema, but have no need to parse it, run
 
-`parser.validates(obj)`
+```ts
+parser.validates(obj)
+```
 
 This is a type guard that returns `true` if obj can be validated by parser, otherwise `false`.
 
-```
+```ts
 if (parser.validates(obj))
  // obj is the correct type in here
 )
@@ -224,9 +233,6 @@ NOT SUPPORTED (❌) means you can't currently define a TsjsonSchema that include
 | definitions| ⚠️ | Still investigating enforcement along with $ref. |
 
 See [src/tsjson-parser.ts](./src/tsjson-parser.ts) for more details, and [the tests](./src/tsjson.test.ts) for interactive examples.
-
-## Installation
-`npm i ts-json-validator`
 
 ## How does all this work?
 The object built up has the structure of a valid JSON schema with one extra magic feature: a hidden symbol that every
