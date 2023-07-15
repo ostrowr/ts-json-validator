@@ -36,6 +36,9 @@ describe("Sanity-checks:", () => {
   test("Allows format validation for strings", () => {
     const parser = new TsjsonParser(S({ type: "string", format: "email" }));
     expect(() => parser.parse(JSON.stringify("not an email"))).toThrowError();
+    expect(() =>
+      parser.parse(JSON.stringify("is.an.email@example.com"))
+    ).not.toThrowError();
   });
 
   test("Only supported string formats are allowed", () => {
