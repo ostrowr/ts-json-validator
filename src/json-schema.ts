@@ -8,7 +8,7 @@
 
 // PARTIALLY ENFORCED (🔓) indicates that the field is partially enforced by the type system, but it may be possible
 // to assign a type to T that fails validation against s.
-// For example, arrays with the additionalItems parameter are PARTIALLY ENFORCED becuase (currently) every element in
+// For example, arrays with the additionalItems parameter are PARTIALLY ENFORCED because (currently) every element in
 // the validated type can be assigned to the additionalItems type, when only items after items.length should be
 // validated against this schema.
 
@@ -67,7 +67,7 @@ type SimpleType =
 // Otherwise, it can be any valid JSON value.
 type ConstConstraint<
   Const extends JsonValue | undefined
-> = Const extends JsonValue ? Const : unknown; // Could possibly replace all these unknows with JsonValues, but it makes the derived types annoying.
+> = Const extends JsonValue ? Const : unknown; // Could possibly replace all these unknowns with JsonValues, but it makes the derived types annoying.
 
 type SimpleTypeConstraint<
   Type extends SimpleType | undefined
@@ -235,7 +235,25 @@ export interface Schema<
   const?: Const; // 💪
   enum?: Enum; // 💪
   type?: Type; // 💪
-  format?: Type extends "string" ? string : never; // ⚠️ only makes sense for string types
+  format?: Type extends "string"
+    ?
+        | "date"
+        | "time"
+        | "date-time"
+        | "uri"
+        | "uri-reference"
+        | "uri-template"
+        | "url"
+        | "email"
+        | "hostname"
+        | "ipv4"
+        | "ipv6"
+        | "regex"
+        | "uuid"
+        | "json-pointer"
+        | "json-pointer-uri-fragment"
+        | "relative-json-pointer"
+    : never; // ⚠️ only makes sense for string types
   contentMediaType?: Type extends "string" ? string : never; // 🤷
   contentEncoding?: Type extends "string" ? string : never; // 🤷
   if?: Then extends SchemaLike // 🤷
