@@ -33,6 +33,21 @@ describe("Sanity-checks:", () => {
     expect(ajv.validateSchema(parser.schema)).toBe(true);
   });
 
+  test("Allows format validation for strings", () => {
+    const parser = new TsjsonParser(S({ type: "string", format: "email" }));
+    expect(() => parser.parse(JSON.stringify("not an email"))).toThrowError();
+    expect(() =>
+      parser.parse(JSON.stringify("is.an.email@example.com"))
+    ).not.toThrowError();
+  });
+
+  test("Only supported string formats are allowed", () => {
+    expect(
+      // @ts-expect-error "phone" is not a supported format
+      () => new TsjsonParser(S({ type: "string", format: "phone" }))
+    ).toThrowError();
+  });
+
   test("Enums convert to union types", () => {
     const parser = new TsjsonParser(
       S({ type: "string", enum: ["a", "b", "c"] as const })
